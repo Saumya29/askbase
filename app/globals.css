@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+* {
+  border-color: theme(colors.border);
+}
+
+body {
+  @apply bg-background text-foreground antialiased;
+}
+
+.container {
+  @apply mx-auto w-full max-w-6xl px-6;
+}
+
+.card-grid {
+  @apply grid gap-6 md:grid-cols-3;
+}
