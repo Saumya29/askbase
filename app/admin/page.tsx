@@ -1,5 +1,7 @@
 import { AdminStats } from "@/components/AdminStats";
 import { QueriesTable } from "@/components/QueriesTable";
+import { KnowledgeGaps } from "@/components/KnowledgeGaps";
+import { ChunkStats } from "@/components/ChunkStats";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function AdminPage() {
@@ -22,6 +24,22 @@ export default function AdminPage() {
           </CardHeader>
           <CardContent>
             <QueriesTable />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Knowledge Gaps</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <KnowledgeGaps />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Chunk Usage</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ChunkStats />
           </CardContent>
         </Card>
       </div>

@@ -7,7 +7,7 @@ import { getSupabaseAdmin } from "@/lib/supabase";
 export const runtime = "nodejs";
 
 const CHAT_MODEL = "gpt-4o-mini";
-const MAX_SOURCES = 6;
+const MAX_SOURCES = 4;
 
 function buildSystemPrompt(sources: { document_name?: string | null; content: string }[]) {
   if (!sources.length) {
@@ -105,9 +105,10 @@ export async function POST(req: Request) {
     },
   });
 
+  const encodedSources = Buffer.from(JSON.stringify(trimmedSources)).toString("base64");
   const headers = new Headers({
     "Content-Type": "text/plain; charset=utf-8",
-    "x-sources": JSON.stringify(trimmedSources),
+    "x-sources": encodedSources,
   });
   if (queryId) {
     headers.set("x-query-id", queryId);

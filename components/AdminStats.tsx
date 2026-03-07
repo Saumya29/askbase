@@ -9,6 +9,8 @@ type Stats = {
   queries: number;
   thumbsUp: number;
   thumbsDown: number;
+  feedbackRate: number;
+  positiveRate: number;
   warning?: string;
 };
 
@@ -32,6 +34,8 @@ export function AdminStats() {
         { label: "Queries", value: stats?.queries ?? 0 },
         { label: "Thumbs Up", value: stats?.thumbsUp ?? 0 },
         { label: "Thumbs Down", value: stats?.thumbsDown ?? 0 },
+        { label: "Feedback Rate", value: `${stats?.feedbackRate ?? 0}%` },
+        { label: "Positive Rate", value: `${stats?.positiveRate ?? 0}%` },
       ].map((item) => (
         <Card key={item.label}>
           <CardHeader>

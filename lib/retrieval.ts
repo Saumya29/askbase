@@ -6,6 +6,7 @@ export type RetrievedChunk = {
   content: string;
   similarity: number;
   document_name?: string | null;
+  source_url?: string | null;
 };
 
 export async function matchChunks(embedding: number[], topK = 6) {
