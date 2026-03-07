@@ -2,6 +2,12 @@
 
 A production-ready MVP for document chat with Next.js 14, Supabase pgvector, and the raw OpenAI SDK. Upload PDFs, index them, and chat with streaming answers that include source citations.
 
+## Demo
+
+<video src="demo.mp4" width="100%" autoplay loop muted playsinline></video>
+
+![Demo](demo.gif)
+
 ## Features
 - PDF upload -> chunk -> embed -> store in Supabase pgvector
 - URL import/crawling with automatic content extraction
