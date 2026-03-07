@@ -24,5 +24,23 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  // Update quality_score on chunks referenced by this query
+  const { data: queryData } = await supabase
+    .from("queries")
+    .select("sources")
+    .eq("id", queryId)
+    .single();
+
+  if (queryData?.sources && Array.isArray(queryData.sources)) {
+    const chunkIds = queryData.sources
+      .map((s: { id?: string }) => s.id)
+      .filter(Boolean);
+
+    if (chunkIds.length > 0) {
+      const delta = feedback === 1 ? 1 : -1;
+      await supabase.rpc("update_chunk_quality", { chunk_ids: chunkIds, delta });
+    }
+  }
+
   return NextResponse.json({ ok: true });
 }

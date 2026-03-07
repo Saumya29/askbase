@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { FileText, Globe } from "lucide-react";
 
 export type DocumentRow = {
   id: string;
@@ -11,6 +12,8 @@ export type DocumentRow = {
   size: number;
   chunk_count: number;
   created_at: string;
+  source_type: string;
+  source_url: string | null;
 };
 
 export function DocumentsPanel({ refreshKey }: { refreshKey: number }) {
@@ -39,11 +42,18 @@ export function DocumentsPanel({ refreshKey }: { refreshKey: number }) {
         {documents.map((doc, index) => (
           <div key={doc.id} className="space-y-2">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium">{doc.name}</p>
-                <p className="text-xs text-mutedForeground">
-                  {doc.chunk_count} chunks - {(doc.size / 1024).toFixed(1)} KB
-                </p>
+              <div className="flex items-start gap-2">
+                {doc.source_type === "url" ? (
+                  <Globe className="h-4 w-4 mt-0.5 shrink-0 text-mutedForeground" />
+                ) : (
+                  <FileText className="h-4 w-4 mt-0.5 shrink-0 text-mutedForeground" />
+                )}
+                <div>
+                  <p className="text-sm font-medium">{doc.name}</p>
+                  <p className="text-xs text-mutedForeground">
+                    {doc.chunk_count} chunks{doc.source_type === "url" ? "" : ` - ${(doc.size / 1024).toFixed(1)} KB`}
+                  </p>
+                </div>
               </div>
               <Badge>{new Date(doc.created_at).toLocaleDateString()}</Badge>
             </div>
