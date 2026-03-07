@@ -32,11 +32,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Missing user message" }, { status: 400 });
   }
 
+  const deviceId = req.headers.get("x-device-id") || undefined;
   const supabase = getSupabaseAdmin();
   const openai = getOpenAIClient();
 
   const [queryEmbedding] = await embedTexts([lastUser.content]);
-  const sources = await matchChunks(queryEmbedding, MAX_SOURCES);
+  const sources = await matchChunks(queryEmbedding, MAX_SOURCES, deviceId);
   const systemPrompt = buildSystemPrompt(sources);
 
   const queryInsert = supabase
@@ -46,6 +47,7 @@ export async function POST(req: Request) {
           question: lastUser.content,
           response: "",
           sources: sources,
+          device_id: deviceId || null,
         })
         .select("id")
         .single()

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ArrowRight } from "lucide-react";
+import { deviceHeaders } from "@/lib/api";
 
 type Props = {
   onImported: () => void;
@@ -23,7 +24,7 @@ export function UrlImport({ onImported }: Props) {
     try {
       const res = await fetch("/api/crawl", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: deviceHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ url: url.trim() }),
       });
 

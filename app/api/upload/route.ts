@@ -41,12 +41,15 @@ export async function POST(req: Request) {
       });
     }
 
+    const deviceId = req.headers.get("x-device-id") || null;
+
     const { data: doc, error: docError } = await supabase
       .from("documents")
       .insert({
         name: file.name,
         size: file.size,
         chunk_count: chunks.length,
+        device_id: deviceId,
       })
       .select()
       .single();

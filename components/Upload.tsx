@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { Upload as UploadIcon } from "lucide-react";
+import { deviceHeaders } from "@/lib/api";
 
 type UploadResponse = {
   ok?: boolean;
@@ -25,7 +26,11 @@ export function Upload({ onUploaded }: { onUploaded: () => void }) {
     formData.append("file", file);
 
     try {
-      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        headers: deviceHeaders(),
+        body: formData,
+      });
       const data: UploadResponse = await res.json();
       if (!res.ok) {
         setStatus(data.error || "Upload failed");

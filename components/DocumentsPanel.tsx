@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { FileText, Globe } from "lucide-react";
+import { deviceHeaders } from "@/lib/api";
 
 export type DocumentRow = {
   id: string;
@@ -19,7 +20,7 @@ export function DocumentsPanel({ refreshKey }: { refreshKey: number }) {
 
   useEffect(() => {
     const load = async () => {
-      const res = await fetch("/api/documents");
+      const res = await fetch("/api/documents", { headers: deviceHeaders() });
       const data = await res.json();
       setDocuments(data.documents || []);
       setWarning(data.warning || null);

@@ -9,7 +9,7 @@ export type RetrievedChunk = {
   source_url?: string | null;
 };
 
-export async function matchChunks(embedding: number[], topK = 6) {
+export async function matchChunks(embedding: number[], topK = 6, deviceId?: string) {
   const supabase = getSupabaseAdmin();
   if (!supabase) {
     return [] as RetrievedChunk[];
@@ -18,6 +18,7 @@ export async function matchChunks(embedding: number[], topK = 6) {
   const { data, error } = await supabase.rpc("match_chunks", {
     query_embedding: embedding,
     match_count: topK,
+    filter_device_id: deviceId || null,
   });
 
   if (error || !data) {

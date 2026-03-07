@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowUp, ThumbsDown, ThumbsUp } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import { deviceHeaders } from "@/lib/api";
 
 export type Source = {
   id: string;
@@ -91,7 +92,7 @@ export function Chat() {
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: deviceHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ messages: [...chatPayload, userMessage] }),
       });
 
@@ -167,7 +168,7 @@ export function Chat() {
     setFeedbackGiven((prev) => ({ ...prev, [queryId]: feedback }));
     await fetch("/api/feedback", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: deviceHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify({ queryId, feedback }),
     });
   };

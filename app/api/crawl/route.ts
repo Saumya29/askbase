@@ -44,6 +44,8 @@ export async function POST(req: Request) {
 
       try {
         // Create parent document
+        const deviceId = req.headers.get("x-device-id") || null;
+
         const { data: parentDoc, error: parentError } = await supabase
           .from("documents")
           .insert({
@@ -52,6 +54,7 @@ export async function POST(req: Request) {
             source_url: parsedUrl.toString(),
             size: 0,
             chunk_count: 0,
+            device_id: deviceId,
           })
           .select("id")
           .single();
@@ -92,6 +95,7 @@ export async function POST(req: Request) {
               parent_id: parentId,
               size: page.text.length,
               chunk_count: chunks.length,
+              device_id: deviceId,
             })
             .select("id")
             .single();
