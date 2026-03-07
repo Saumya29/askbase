@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const supabase = getSupabaseAdmin();
   if (!supabase) {
@@ -12,7 +14,8 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from("documents")
-    .select("id,name,size,chunk_count,created_at")
+    .select("id,name,size,chunk_count,created_at,source_type,source_url")
+    .is("parent_id", null)
     .order("created_at", { ascending: false });
 
   if (error) {

@@ -27,28 +27,41 @@ export function QueriesTable() {
     <Table>
       <TableHeader>
         <TableRow>
+          <TableHead>Status</TableHead>
           <TableHead>Question</TableHead>
-          <TableHead>Feedback</TableHead>
+          <TableHead>Response</TableHead>
           <TableHead>Created</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {queries.map((query) => (
           <TableRow key={query.id}>
-            <TableCell className="max-w-[420px]">
+            <TableCell>
+              <span
+                className={`inline-block h-2.5 w-2.5 rounded-full ${
+                  query.feedback === 1
+                    ? "bg-green-500"
+                    : query.feedback === -1
+                    ? "bg-red-500"
+                    : "bg-gray-300"
+                }`}
+                title={query.feedback === 1 ? "Upvoted" : query.feedback === -1 ? "Downvoted" : "No feedback"}
+              />
+            </TableCell>
+            <TableCell className="max-w-[300px]">
               <p className="truncate text-sm">{query.question}</p>
             </TableCell>
-            <TableCell className="text-sm">
-              {query.feedback === 1 ? "Up" : query.feedback === -1 ? "Down" : "None"}
+            <TableCell className="max-w-[300px]">
+              <p className="truncate text-sm text-mutedForeground">{query.response}</p>
             </TableCell>
-            <TableCell className="text-sm text-mutedForeground">
+            <TableCell className="text-sm text-mutedForeground whitespace-nowrap">
               {new Date(query.created_at).toLocaleString()}
             </TableCell>
           </TableRow>
         ))}
         {queries.length === 0 && (
           <TableRow>
-            <TableCell colSpan={3} className="text-sm text-mutedForeground">
+            <TableCell colSpan={4} className="text-sm text-mutedForeground">
               No queries yet.
             </TableCell>
           </TableRow>
