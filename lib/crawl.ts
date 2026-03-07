@@ -10,6 +10,7 @@ export type CrawledPage = {
 
 type CrawlOptions = {
   maxPages?: number;
+  signal?: AbortSignal;
 };
 
 const MAX_PAGES_DEFAULT = 25;
@@ -23,9 +24,15 @@ function sleep(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-async function fetchPage(url: string): Promise<{ html: string; contentType: string } | null> {
+async function fetchPage(url: string, signal?: AbortSignal): Promise<{ html: string; contentType: string } | null> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+
+  // Abort the internal controller if the external signal fires
+  if (signal) {
+    if (signal.aborted) return null;
+    signal.addEventListener("abort", () => controller.abort(), { once: true });
+  }
 
   try {
     const res = await fetch(url, {
@@ -125,17 +132,20 @@ export async function* crawlSite(
   options?: CrawlOptions
 ): AsyncGenerator<CrawledPage & { queued: number }> {
   const maxPages = options?.maxPages ?? MAX_PAGES_DEFAULT;
+  const signal = options?.signal;
   const visited = new Set<string>();
   const queue: string[] = [startUrl];
   let pagesYielded = 0;
 
   while (queue.length > 0 && pagesYielded < maxPages) {
+    if (signal?.aborted) return;
+
     const url = queue.shift()!;
     const normalized = url.replace(/\/$/, "");
     if (visited.has(normalized)) continue;
     visited.add(normalized);
 
-    const result = await fetchPage(url);
+    const result = await fetchPage(url, signal);
     if (!result) continue;
 
     const { html, contentType } = result;

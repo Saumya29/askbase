@@ -41,16 +41,25 @@ const SUGGESTED_PROMPTS = [
 ];
 
 export function Chat() {
-  const [messages, setMessages] = useState<Message[]>(loadMessages);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [feedbackGiven, setFeedbackGiven] = useState<Record<string, 1 | -1>>({});
   const [expandedSource, setExpandedSource] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const hydrated = useRef(false);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+    const stored = loadMessages();
+    if (stored.length > 0) setMessages(stored);
+    hydrated.current = true;
+  }, []);
+
+  useEffect(() => {
+    if (hydrated.current) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+    }
   }, [messages]);
 
   useEffect(() => {

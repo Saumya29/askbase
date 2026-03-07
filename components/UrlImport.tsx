@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { ArrowRight } from "lucide-react";
+import { useRef, useState } from "react";
+import { ArrowRight, Square } from "lucide-react";
 import { deviceHeaders } from "@/lib/api";
 
 type Props = {
@@ -13,6 +13,7 @@ export function UrlImport({ onImported }: Props) {
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState("");
   const [error, setError] = useState("");
+  const abortRef = useRef<AbortController | null>(null);
 
   const handleImport = async () => {
     if (!url.trim()) return;
@@ -21,11 +22,15 @@ export function UrlImport({ onImported }: Props) {
     setProgress("Starting crawl...");
     setError("");
 
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     try {
       const res = await fetch("/api/crawl", {
         method: "POST",
         headers: deviceHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ url: url.trim() }),
+        signal: controller.signal,
       });
 
       if (!res.ok) {
@@ -42,16 +47,8 @@ export function UrlImport({ onImported }: Props) {
       let done = false;
       let buffer = "";
 
-      while (!done) {
-        const { value, done: doneReading } = await reader.read();
-        done = doneReading;
-        if (!value) continue;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n\n");
-        buffer = lines.pop() || "";
-
-        for (const line of lines) {
+      const processLines = (text: string) => {
+        for (const line of text.split("\n\n")) {
           const match = line.match(/^data: (.+)$/);
           if (!match) continue;
 
@@ -68,10 +65,32 @@ export function UrlImport({ onImported }: Props) {
             setError(event.message);
           }
         }
+      };
+
+      while (!done) {
+        const { value, done: doneReading } = await reader.read();
+        done = doneReading;
+        if (!value) continue;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n\n");
+        buffer = lines.pop() || "";
+        processLines(lines.join("\n\n"));
+      }
+
+      // Flush remaining buffer (e.g. the complete event)
+      if (buffer.trim()) {
+        processLines(buffer);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Crawl failed");
+      if (err instanceof DOMException && err.name === "AbortError") {
+        setProgress("Crawl stopped — partial results indexed");
+        onImported();
+      } else {
+        setError(err instanceof Error ? err.message : "Crawl failed");
+      }
     } finally {
+      abortRef.current = null;
       setLoading(false);
     }
   };
@@ -105,7 +124,19 @@ export function UrlImport({ onImported }: Props) {
         </button>
       </div>
       {progress && (
-        <p className="mt-1.5 text-xs text-mutedForeground leading-snug">{progress}</p>
+        <div className="mt-1.5 flex items-center gap-1.5">
+          <p className="text-xs text-mutedForeground leading-snug flex-1 min-w-0">{progress}</p>
+          {loading && (
+            <button
+              onClick={() => abortRef.current?.abort()}
+              className="text-xs text-destructive hover:text-destructive/80 transition-opacity shrink-0 flex items-center gap-0.5"
+              aria-label="Stop crawl"
+            >
+              <Square className="h-3 w-3" />
+              Stop
+            </button>
+          )}
+        </div>
       )}
       {error && (
         <p className="mt-1.5 text-xs text-destructive leading-snug">{error}</p>

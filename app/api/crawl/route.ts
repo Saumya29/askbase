@@ -69,7 +69,8 @@ export async function POST(req: Request) {
         let totalPages = 0;
         let totalChunks = 0;
 
-        for await (const page of crawlSite(parsedUrl.toString())) {
+        for await (const page of crawlSite(parsedUrl.toString(), { signal: req.signal })) {
+          if (req.signal.aborted) break;
           totalPages++;
 
           send({
