@@ -1,9 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { FileText, Globe } from "lucide-react";
 
 export type DocumentRow = {
@@ -31,37 +28,40 @@ export function DocumentsPanel({ refreshKey }: { refreshKey: number }) {
   }, [refreshKey]);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Documents</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {documents.length === 0 && (
-          <p className="text-sm text-mutedForeground">No documents uploaded yet.</p>
-        )}
-        {documents.map((doc, index) => (
-          <div key={doc.id} className="space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-start gap-2">
-                {doc.source_type === "url" ? (
-                  <Globe className="h-4 w-4 mt-0.5 shrink-0 text-mutedForeground" />
-                ) : (
-                  <FileText className="h-4 w-4 mt-0.5 shrink-0 text-mutedForeground" />
-                )}
-                <div>
-                  <p className="text-sm font-medium">{doc.name}</p>
-                  <p className="text-xs text-mutedForeground">
-                    {doc.chunk_count} chunks{doc.source_type === "url" ? "" : ` - ${(doc.size / 1024).toFixed(1)} KB`}
-                  </p>
-                </div>
+    <div className="px-4 py-4">
+      <p className="text-xs font-medium text-mutedForeground uppercase tracking-wide mb-3">
+        Documents
+      </p>
+
+      {documents.length === 0 ? (
+        <p className="text-xs text-mutedForeground">No documents yet.</p>
+      ) : (
+        <div className="space-y-0.5">
+          {documents.map((doc) => (
+            <div
+              key={doc.id}
+              className="flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-muted transition-colors group"
+            >
+              {doc.source_type === "url" ? (
+                <Globe className="h-3.5 w-3.5 shrink-0 text-mutedForeground" />
+              ) : (
+                <FileText className="h-3.5 w-3.5 shrink-0 text-mutedForeground" />
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium truncate leading-snug">{doc.name}</p>
+                <p className="text-xs text-mutedForeground leading-snug">
+                  {doc.chunk_count} chunks
+                  {doc.source_type !== "url" && ` · ${(doc.size / 1024).toFixed(1)} KB`}
+                </p>
               </div>
-              <Badge>{new Date(doc.created_at).toLocaleDateString()}</Badge>
             </div>
-            {index < documents.length - 1 && <Separator />}
-          </div>
-        ))}
-        {warning && <p className="text-xs text-mutedForeground">{warning}</p>}
-      </CardContent>
-    </Card>
+          ))}
+        </div>
+      )}
+
+      {warning && (
+        <p className="mt-3 text-xs text-mutedForeground">{warning}</p>
+      )}
+    </div>
   );
 }

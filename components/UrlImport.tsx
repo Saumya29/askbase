@@ -1,9 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { ArrowRight } from "lucide-react";
 
 type Props = {
   onImported: () => void;
@@ -59,10 +57,10 @@ export function UrlImport({ onImported }: Props) {
           const event = JSON.parse(match[1]);
 
           if (event.type === "progress") {
-            const host = new URL(event.currentUrl).pathname;
-            setProgress(`Crawling page ${event.completed}/${event.total} - ${host}`);
+            const path = new URL(event.currentUrl).pathname;
+            setProgress(`${event.completed}/${event.total} — ${path}`);
           } else if (event.type === "complete") {
-            setProgress(`Done! ${event.totalPages} pages, ${event.totalChunks} chunks indexed.`);
+            setProgress(`Done — ${event.totalPages} pages, ${event.totalChunks} chunks indexed`);
             setUrl("");
             onImported();
           } else if (event.type === "error") {
@@ -77,26 +75,40 @@ export function UrlImport({ onImported }: Props) {
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") handleImport();
+  };
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Import URL</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="flex gap-2">
-          <Input
-            placeholder="https://example.com or sitemap.xml URL"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            disabled={loading}
-          />
-          <Button onClick={handleImport} disabled={loading || !url.trim()}>
-            {loading ? "Crawling..." : "Import"}
-          </Button>
-        </div>
-        {progress && <p className="text-sm text-mutedForeground">{progress}</p>}
-        {error && <p className="text-sm text-red-500">{error}</p>}
-      </CardContent>
-    </Card>
+    <div className="px-4 py-4">
+      <p className="text-xs font-medium text-mutedForeground uppercase tracking-wide mb-2">
+        Import URL
+      </p>
+      <div className="flex items-center gap-1.5">
+        <input
+          type="url"
+          placeholder="https://example.com"
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          onKeyDown={handleKeyDown}
+          disabled={loading}
+          className="flex-1 min-w-0 bg-muted text-sm rounded-lg px-3 py-2 outline-none focus:ring-1 focus:ring-border placeholder:text-mutedForeground"
+        />
+        <button
+          onClick={handleImport}
+          disabled={loading || !url.trim()}
+          className="h-9 w-9 flex items-center justify-center rounded-lg bg-foreground text-background disabled:opacity-25 hover:opacity-80 transition-opacity shrink-0"
+          aria-label="Import URL"
+        >
+          <ArrowRight className="h-4 w-4" />
+        </button>
+      </div>
+      {progress && (
+        <p className="mt-1.5 text-xs text-mutedForeground leading-snug">{progress}</p>
+      )}
+      {error && (
+        <p className="mt-1.5 text-xs text-destructive leading-snug">{error}</p>
+      )}
+    </div>
   );
 }
