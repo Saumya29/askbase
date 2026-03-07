@@ -4,9 +4,11 @@ A production-ready MVP for document chat with Next.js 14, Supabase pgvector, and
 
 ## Features
 - PDF upload -> chunk -> embed -> store in Supabase pgvector
-- Streaming chat responses with source citations
-- Admin dashboard with stats cards and recent queries
-- Feedback thumbs up/down
+- URL import/crawling with automatic content extraction
+- Streaming chat responses with markdown rendering and source citations
+- Feedback-driven retrieval — thumbs up/down votes adjust chunk quality scores to improve future results
+- Admin monitoring dashboard with feedback rate, positive rate, knowledge gaps, and chunk usage stats
+- Clickable source badges (links for crawled URLs, expandable content for uploads)
 - Clean minimal light-mode UI using Tailwind + shadcn-style components
 
 ## Tech Stack
@@ -23,66 +25,14 @@ npm install
 ```
 
 ### 2) Configure Supabase
-Create a Supabase project and run the SQL migration:
+Create a Supabase project and run the SQL migrations in order:
 
-```sql
--- supabase/migrations/0001_init.sql
-create extension if not exists vector;
-create extension if not exists pgcrypto;
-
-create table if not exists documents (
-  id uuid primary key default gen_random_uuid(),
-  name text not null,
-  size integer,
-  chunk_count integer default 0,
-  created_at timestamptz default now()
-);
-
-create table if not exists chunks (
-  id uuid primary key default gen_random_uuid(),
-  document_id uuid references documents(id) on delete cascade,
-  content text not null,
-  embedding vector(1536) not null,
-  metadata jsonb default '{}'::jsonb,
-  created_at timestamptz default now()
-);
-
-create table if not exists queries (
-  id uuid primary key default gen_random_uuid(),
-  question text not null,
-  response text,
-  sources jsonb,
-  feedback smallint,
-  created_at timestamptz default now()
-);
-
-create or replace function match_chunks(
-  query_embedding vector(1536),
-  match_count int default 5
-)
-returns table (
-  id uuid,
-  document_id uuid,
-  content text,
-  similarity float,
-  document_name text
-)
-language sql stable as $$
-  select
-    chunks.id,
-    chunks.document_id,
-    chunks.content,
-    1 - (chunks.embedding <=> query_embedding) as similarity,
-    documents.name as document_name
-  from chunks
-  join documents on documents.id = chunks.document_id
-  order by chunks.embedding <=> query_embedding
-  limit match_count;
-$$;
-
-create index if not exists chunks_embedding_ivfflat
-  on chunks using ivfflat (embedding vector_cosine_ops)
-  with (lists = 100);
+```bash
+# Run each migration file in the Supabase SQL Editor:
+supabase/migrations/0001_init.sql        # Base tables, pgvector, match_chunks
+supabase/migrations/0002_add_url_source.sql   # URL source tracking on documents
+supabase/migrations/0003_match_chunks_url.sql # source_url in match_chunks results
+supabase/migrations/0004_feedback_quality.sql # quality_score, feedback-driven retrieval, chunk usage stats
 ```
 
 ### 3) Environment variables
@@ -109,10 +59,11 @@ Visit:
 
 ## API Routes
 - `POST /api/upload` - Upload PDF and index chunks
+- `POST /api/crawl` - Import and index content from a URL
 - `GET /api/documents` - List uploaded documents
-- `POST /api/chat` - Streaming chat with citations
-- `POST /api/feedback` - Thumbs up/down
-- `GET /api/admin/stats` - Stats cards
+- `POST /api/chat` - Streaming chat with markdown and citations
+- `POST /api/feedback` - Thumbs up/down (also updates chunk quality scores)
+- `GET /api/admin/stats` - Dashboard stats, knowledge gaps, chunk usage
 - `GET /api/admin/queries` - Recent queries
 
 ## Deployment (Vercel)
@@ -127,7 +78,7 @@ If you want to self-host, ensure the same env vars are available at runtime.
 - `app/` - Next.js App Router pages and API routes
 - `components/` - UI components and client UI
 - `lib/` - OpenAI, Supabase, chunking, embeddings helpers
-- `supabase/migrations/` - SQL migration for pgvector tables
+- `supabase/migrations/` - SQL migrations for pgvector tables and RPCs
 
 ## License
 MIT
