@@ -10,14 +10,11 @@
   border-color: theme(colors.border);
 }
 
+html,
 body {
-  @apply bg-background text-foreground antialiased;
+  height: 100%;
 }
 
-.container {
-  @apply mx-auto w-full max-w-6xl px-6;
-}
-
-.card-grid {
-  @apply grid gap-6 md:grid-cols-3;
+body {
+  @apply bg-background text-foreground antialiased overflow-hidden;
 }
