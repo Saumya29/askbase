@@ -12,17 +12,11 @@ export async function GET(req: Request) {
     });
   }
 
-  const deviceId = req.headers.get("x-device-id");
-
-  let query = supabase
+  const query = supabase
     .from("documents")
     .select("id,name,size,chunk_count,created_at,source_type,source_url")
     .is("parent_id", null)
     .order("created_at", { ascending: false });
-
-  if (deviceId) {
-    query = query.eq("device_id", deviceId);
-  }
 
   const { data, error } = await query;
 
