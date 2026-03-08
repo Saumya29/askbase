@@ -20,10 +20,18 @@ export function DocumentsPanel({ refreshKey }: { refreshKey: number }) {
 
   useEffect(() => {
     const load = async () => {
-      const res = await fetch("/api/documents", { headers: deviceHeaders() });
-      const data = await res.json();
-      setDocuments(data.documents || []);
-      setWarning(data.warning || null);
+      try {
+        const res = await fetch(`/api/documents?t=${Date.now()}`, {
+          headers: deviceHeaders(),
+          cache: "no-store",
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        setDocuments(data.documents || []);
+        setWarning(data.warning || null);
+      } catch {
+        // network error — keep existing state
+      }
     };
     load();
   }, [refreshKey]);
