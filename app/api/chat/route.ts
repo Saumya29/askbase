@@ -37,7 +37,7 @@ export async function POST(req: Request) {
   const openai = getOpenAIClient();
 
   const [queryEmbedding] = await embedTexts([lastUser.content]);
-  const sources = await matchChunks(queryEmbedding, MAX_SOURCES, deviceId);
+  const sources = await matchChunks(queryEmbedding, MAX_SOURCES);
   const systemPrompt = buildSystemPrompt(sources);
 
   const queryInsert = supabase
