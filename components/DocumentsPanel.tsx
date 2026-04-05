@@ -30,7 +30,7 @@ export function DocumentsPanel({ refreshKey }: { refreshKey: number }) {
         setDocuments(data.documents || []);
         setWarning(data.warning || null);
       } catch {
-        // network error — keep existing state
+        // network error, keep existing state
       }
     };
     load();

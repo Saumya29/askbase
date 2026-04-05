@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { ArrowRight, FileText, Globe, MessageSquare, Github } from "lucide-react";
 
 // ─── Data ────────────────────────────────────────────────────────────────────
@@ -8,7 +9,7 @@ const features = [
     icon: FileText,
     title: "PDF Upload & Indexing",
     description:
-      "Drop in any PDF and AskBase chunks, embeds, and stores it in Supabase pgvector — ready to query in seconds.",
+      "Drop in any PDF and AskBase chunks, embeds, and stores it in Supabase pgvector, ready to query in seconds.",
   },
   {
     icon: Globe,
@@ -71,15 +72,13 @@ function Navbar() {
             <Github className="h-4 w-4" />
             <span className="hidden sm:inline">GitHub</span>
           </a>
-          <a
-            href="https://askbase.saumyatiwari.com"
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            href="/app"
             className="flex items-center gap-1.5 text-sm font-medium bg-foreground text-primary-foreground px-4 py-2 rounded-lg hover:opacity-80 transition-opacity"
           >
             Launch App
             <ArrowRight className="h-3.5 w-3.5" />
-          </a>
+          </Link>
         </div>
       </div>
     </nav>
@@ -100,18 +99,16 @@ function Hero() {
       </h1>
       <p className="text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed text-pretty mb-10">
         Upload PDFs or import any URL. Ask questions in plain language and get
-        answers grounded in your actual content — with sources.
+        answers grounded in your actual content, with sources.
       </p>
       <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-        <a
-          href="https://askbase.saumyatiwari.com"
-          target="_blank"
-          rel="noopener noreferrer"
+        <Link
+          href="/app"
           className="flex items-center gap-2 bg-foreground text-primary-foreground px-6 py-3 rounded-xl text-sm font-medium hover:opacity-80 transition-opacity"
         >
           Start for free
           <ArrowRight className="h-4 w-4" />
-        </a>
+        </Link>
         <a
           href="https://github.com/Saumya29/askbase"
           target="_blank"
@@ -164,7 +161,7 @@ function Features() {
             Everything you need
           </h2>
           <p className="text-muted-foreground text-base max-w-md mx-auto leading-relaxed">
-            AskBase handles the entire pipeline — from ingestion to retrieval to generation.
+            AskBase handles the entire pipeline, from ingestion to retrieval to generation.
           </p>
         </div>
         <div className="grid sm:grid-cols-3 gap-6">
@@ -246,15 +243,13 @@ function CTA() {
       <p className="text-muted-foreground text-base max-w-sm mx-auto leading-relaxed mb-8">
         No account required. Upload a PDF or paste a URL and start chatting immediately.
       </p>
-      <a
-        href="https://askbase.saumyatiwari.com"
-        target="_blank"
-        rel="noopener noreferrer"
+      <Link
+        href="/app"
         className="inline-flex items-center gap-2 bg-foreground text-primary-foreground px-7 py-3.5 rounded-xl text-sm font-medium hover:opacity-80 transition-opacity"
       >
         Launch AskBase
         <ArrowRight className="h-4 w-4" />
-      </a>
+      </Link>
     </section>
   );
 }

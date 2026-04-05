@@ -1,26 +1,45 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { ArrowRight, Square } from "lucide-react";
+import {
+  ArrowRight,
+  Square,
+  Loader2,
+  CheckCircle,
+  AlertCircle,
+} from "lucide-react";
 import { deviceHeaders } from "@/lib/api";
 
 type Props = {
   onImported: () => void;
 };
 
+type CrawlStatus = {
+  type: "idle" | "connecting" | "crawling" | "done" | "stopped" | "error";
+  message: string;
+  completed?: number;
+  total?: number;
+};
+
 export function UrlImport({ onImported }: Props) {
   const [url, setUrl] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [progress, setProgress] = useState("");
-  const [error, setError] = useState("");
+  const [status, setStatus] = useState<CrawlStatus>({
+    type: "idle",
+    message: "",
+  });
   const abortRef = useRef<AbortController | null>(null);
+
+  const loading = status.type === "connecting" || status.type === "crawling";
+
+  const progressPercent =
+    status.type === "crawling" && status.total && status.total > 0
+      ? Math.round((status.completed! / status.total) * 100)
+      : 0;
 
   const handleImport = async () => {
     if (!url.trim()) return;
 
-    setLoading(true);
-    setProgress("Starting crawl...");
-    setError("");
+    setStatus({ type: "connecting", message: "Connecting..." });
 
     const controller = new AbortController();
     abortRef.current = controller;
@@ -35,8 +54,10 @@ export function UrlImport({ onImported }: Props) {
 
       if (!res.ok) {
         const data = await res.json();
-        setError(data.error || "Crawl failed");
-        setLoading(false);
+        setStatus({
+          type: "error",
+          message: data.error || "Crawl failed",
+        });
         return;
       }
 
@@ -56,13 +77,25 @@ export function UrlImport({ onImported }: Props) {
 
           if (event.type === "progress") {
             const path = new URL(event.currentUrl).pathname;
-            setProgress(`${event.completed}/${event.total} — ${path}`);
+            setStatus({
+              type: "crawling",
+              message: `Indexing ${path}`,
+              completed: event.completed,
+              total: event.total,
+            });
           } else if (event.type === "complete") {
-            setProgress(`Done — ${event.totalPages} pages, ${event.totalChunks} chunks indexed`);
+            setStatus({
+              type: "done",
+              message: `${event.totalPages} pages, ${event.totalChunks} chunks indexed`,
+            });
             setUrl("");
             onImported();
+            setTimeout(
+              () => setStatus({ type: "idle", message: "" }),
+              4000
+            );
           } else if (event.type === "error") {
-            setError(event.message);
+            setStatus({ type: "error", message: event.message });
           }
         }
       };
@@ -83,14 +116,19 @@ export function UrlImport({ onImported }: Props) {
       }
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") {
-        setProgress("Crawl stopped — partial results indexed");
+        setStatus({
+          type: "stopped",
+          message: "Crawl stopped. Partial results indexed",
+        });
         onImported();
       } else {
-        setError(err instanceof Error ? err.message : "Crawl failed");
+        setStatus({
+          type: "error",
+          message: err instanceof Error ? err.message : "Crawl failed",
+        });
       }
     } finally {
       abortRef.current = null;
-      setLoading(false);
     }
   };
 
@@ -122,23 +160,74 @@ export function UrlImport({ onImported }: Props) {
           <ArrowRight className="h-4 w-4" />
         </button>
       </div>
-      {progress && (
-        <div className="mt-2 flex items-center gap-2">
-          <p className="text-xs text-muted-foreground leading-snug flex-1 min-w-0">{progress}</p>
+
+      {/* Status indicator */}
+      {status.type !== "idle" && (
+        <div className="mt-3 space-y-2">
+          {/* Progress bar */}
           {loading && (
-            <button
-              onClick={() => abortRef.current?.abort()}
-              className="text-xs text-destructive hover:opacity-70 transition-opacity shrink-0 flex items-center gap-1"
-              aria-label="Stop crawl"
-            >
-              <Square className="h-3 w-3" />
-              Stop
-            </button>
+            <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-300 ${
+                  status.type === "connecting"
+                    ? "bg-foreground/40 animate-pulse w-[15%]"
+                    : "bg-foreground/60"
+                }`}
+                style={
+                  status.type === "crawling"
+                    ? { width: `${Math.max(progressPercent, 10)}%` }
+                    : undefined
+                }
+              />
+            </div>
           )}
+
+          <div className="flex items-center gap-2">
+            {/* Status icon */}
+            {loading && (
+              <Loader2 className="h-3.5 w-3.5 text-muted-foreground animate-spin shrink-0" />
+            )}
+            {status.type === "done" && (
+              <CheckCircle className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+            )}
+            {status.type === "error" && (
+              <AlertCircle className="h-3.5 w-3.5 text-destructive shrink-0" />
+            )}
+            {status.type === "stopped" && (
+              <AlertCircle className="h-3.5 w-3.5 text-amber-600 shrink-0" />
+            )}
+
+            {/* Status text */}
+            <p
+              className={`text-xs leading-snug flex-1 min-w-0 ${
+                status.type === "error"
+                  ? "text-destructive"
+                  : status.type === "done"
+                  ? "text-emerald-600"
+                  : status.type === "stopped"
+                  ? "text-amber-600"
+                  : "text-muted-foreground"
+              }`}
+            >
+              {status.message}
+              {status.type === "crawling" &&
+                status.total &&
+                ` (${status.completed}/${status.total})`}
+            </p>
+
+            {/* Stop button */}
+            {loading && (
+              <button
+                onClick={() => abortRef.current?.abort()}
+                className="text-xs text-destructive hover:opacity-70 transition-opacity shrink-0 flex items-center gap-1"
+                aria-label="Stop crawl"
+              >
+                <Square className="h-3 w-3" />
+                Stop
+              </button>
+            )}
+          </div>
         </div>
-      )}
-      {error && (
-        <p className="mt-2 text-xs text-destructive leading-snug">{error}</p>
       )}
     </div>
   );

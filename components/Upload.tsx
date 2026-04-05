@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Upload as UploadIcon } from "lucide-react";
+import { Upload as UploadIcon, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import { deviceHeaders } from "@/lib/api";
 
 type UploadResponse = {
@@ -10,22 +10,29 @@ type UploadResponse = {
   error?: string;
 };
 
+type Status = {
+  type: "idle" | "uploading" | "processing" | "success" | "warning" | "error";
+  message: string;
+};
+
 export function Upload({ onUploaded }: { onUploaded: () => void }) {
   const [fileName, setFileName] = useState<string | null>(null);
-  const [status, setStatus] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState<Status>({ type: "idle", message: "" });
   const [dragging, setDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const loading = status.type === "uploading" || status.type === "processing";
+
   const processFile = async (file: File) => {
     setFileName(file.name);
-    setLoading(true);
-    setStatus(null);
+    setStatus({ type: "uploading", message: "Uploading..." });
 
     const formData = new FormData();
     formData.append("file", file);
 
     try {
+      setStatus({ type: "processing", message: "Chunking & embedding..." });
+
       const res = await fetch("/api/upload", {
         method: "POST",
         headers: deviceHeaders(),
@@ -33,16 +40,22 @@ export function Upload({ onUploaded }: { onUploaded: () => void }) {
       });
       const data: UploadResponse = await res.json();
       if (!res.ok) {
-        setStatus(data.error || "Upload failed");
-      } else {
-        setStatus(data.warning ? `Warning: ${data.warning}` : "Indexed successfully");
+        setStatus({ type: "error", message: data.error || "Upload failed" });
+      } else if (data.warning) {
+        setStatus({ type: "warning", message: data.warning });
         setFileName(null);
         onUploaded();
+      } else {
+        setStatus({ type: "success", message: "Indexed successfully" });
+        setFileName(null);
+        onUploaded();
+        setTimeout(() => setStatus({ type: "idle", message: "" }), 3000);
       }
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Upload failed");
-    } finally {
-      setLoading(false);
+      setStatus({
+        type: "error",
+        message: error instanceof Error ? error.message : "Upload failed",
+      });
     }
   };
 
@@ -57,10 +70,6 @@ export function Upload({ onUploaded }: { onUploaded: () => void }) {
     const file = e.dataTransfer.files?.[0];
     if (file?.type === "application/pdf") processFile(file);
   };
-
-  const isError =
-    status != null &&
-    (status.toLowerCase().includes("fail") || status.toLowerCase().includes("error"));
 
   return (
     <div className="px-4 pt-5 pb-4">
@@ -85,11 +94,7 @@ export function Upload({ onUploaded }: { onUploaded: () => void }) {
       >
         <UploadIcon className="h-4 w-4" />
         <span className="leading-snug text-center px-2">
-          {loading
-            ? "Processing..."
-            : fileName
-            ? fileName
-            : "Drop PDF here or click to browse"}
+          {loading ? fileName : "Drop PDF here or click to browse"}
         </span>
       </button>
       <input
@@ -99,14 +104,49 @@ export function Upload({ onUploaded }: { onUploaded: () => void }) {
         className="hidden"
         onChange={handleFileChange}
       />
-      {status && (
-        <p
-          className={`mt-2 text-xs leading-snug ${
-            isError ? "text-destructive" : "text-muted-foreground"
-          }`}
-        >
-          {status}
-        </p>
+
+      {/* Status indicator */}
+      {status.type !== "idle" && (
+        <div className="mt-3 space-y-2">
+          {/* Progress bar for uploading/processing */}
+          {loading && (
+            <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
+              <div
+                className="h-full bg-foreground/60 rounded-full transition-all duration-500 animate-pulse"
+                style={{ width: status.type === "uploading" ? "40%" : "75%" }}
+              />
+            </div>
+          )}
+
+          <div className="flex items-center gap-2">
+            {loading && (
+              <Loader2 className="h-3.5 w-3.5 text-muted-foreground animate-spin shrink-0" />
+            )}
+            {status.type === "success" && (
+              <CheckCircle className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+            )}
+            {(status.type === "error" || status.type === "warning") && (
+              <AlertCircle
+                className={`h-3.5 w-3.5 shrink-0 ${
+                  status.type === "error" ? "text-destructive" : "text-amber-600"
+                }`}
+              />
+            )}
+            <p
+              className={`text-xs leading-snug ${
+                status.type === "error"
+                  ? "text-destructive"
+                  : status.type === "success"
+                  ? "text-emerald-600"
+                  : status.type === "warning"
+                  ? "text-amber-600"
+                  : "text-muted-foreground"
+              }`}
+            >
+              {status.message}
+            </p>
+          </div>
+        </div>
       )}
     </div>
   );

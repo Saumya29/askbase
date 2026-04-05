@@ -15,7 +15,7 @@ const lora = Lora({
 });
 
 export const metadata: Metadata = {
-  title: "AskBase — Chat with your documents",
+  title: "AskBase | Chat with your documents",
   description:
     "Upload PDFs or import URLs and chat with your documents using AI, powered by Supabase pgvector and OpenAI.",
 };
