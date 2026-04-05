@@ -1,18 +1,32 @@
-import { NextResponse } from "next/server";
-import { getOpenAIClient } from "@/lib/openai";
+import { convertToModelMessages, streamText, type UIMessage } from "ai";
+import { openai } from "@ai-sdk/openai";
 import { embedTexts } from "@/lib/embeddings";
 import { matchChunks } from "@/lib/retrieval";
 import { getSupabaseAdmin } from "@/lib/supabase";
+import { env } from "@/lib/env";
 
 export const runtime = "nodejs";
 
 const CHAT_MODEL = "gpt-4o-mini";
 const MAX_SOURCES = 4;
 
+type ChatMetadata = {
+  sources?: Array<{
+    id: string;
+    document_id: string;
+    document_name?: string | null;
+    source_url?: string | null;
+    similarity: number;
+    content: string;
+  }>;
+  queryId?: string;
+};
+
 function buildSystemPrompt(sources: { document_name?: string | null; content: string }[]) {
   if (!sources.length) {
     return "You are AskBase, a helpful assistant. If you do not have enough context, say you do not know.";
   }
+
   const formatted = sources
     .map((source, index) => {
       const name = source.document_name ? `(${source.document_name})` : "";
@@ -25,26 +39,37 @@ function buildSystemPrompt(sources: { document_name?: string | null; content: st
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
-  const messages = body?.messages ?? [];
-  const lastUser = [...messages].reverse().find((msg: any) => msg?.role === "user");
+  const messages = (body?.messages ?? []) as UIMessage<ChatMetadata>[];
+  const lastUser = [...messages].reverse().find((msg) => msg.role === "user");
 
-  if (!lastUser?.content) {
-    return NextResponse.json({ error: "Missing user message" }, { status: 400 });
+  const lastUserText =
+    lastUser?.parts
+      ?.filter((part) => part.type === "text")
+      .map((part) => part.text)
+      .join("") || "";
+
+  if (!lastUserText) {
+    return new Response(JSON.stringify({ error: "Missing user message" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
   const deviceId = req.headers.get("x-device-id") || undefined;
   const supabase = getSupabaseAdmin();
-  const openai = getOpenAIClient();
 
-  const [queryEmbedding] = await embedTexts([lastUser.content]);
+  const [queryEmbedding] = await embedTexts([lastUserText]);
   const sources = await matchChunks(queryEmbedding, MAX_SOURCES);
-  const systemPrompt = buildSystemPrompt(sources);
+  const trimmedSources = sources.map((source) => ({
+    ...source,
+    content: source.content.slice(0, 240),
+  }));
 
   const queryInsert = supabase
     ? await supabase
         .from("queries")
         .insert({
-          question: lastUser.content,
+          question: lastUserText,
           response: "",
           sources: sources,
           device_id: deviceId || null,
@@ -55,12 +80,7 @@ export async function POST(req: Request) {
 
   const queryId = queryInsert?.data?.id;
 
-  const trimmedSources = sources.map((source) => ({
-    ...source,
-    content: source.content.slice(0, 240),
-  }));
-
-  if (!openai) {
+  if (!env.openaiApiKey) {
     const fallbackText = "OpenAI is not configured. Add OPENAI_API_KEY to enable chat responses.";
     if (supabase && queryId) {
       await supabase
@@ -68,53 +88,41 @@ export async function POST(req: Request) {
         .update({ response: fallbackText, sources: trimmedSources })
         .eq("id", queryId);
     }
-    return NextResponse.json({ response: fallbackText, sources: trimmedSources, queryId });
+
+    return new Response(JSON.stringify({ error: fallbackText }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
-  const stream = await openai.chat.completions.create({
-    model: CHAT_MODEL,
-    stream: true,
+  const modelMessages = await convertToModelMessages(messages as any);
+  const result = streamText({
+    model: openai(CHAT_MODEL),
     messages: [
-      { role: "system", content: systemPrompt },
-      ...messages.filter((msg: any) => msg.role !== "system"),
+      { role: "system", content: buildSystemPrompt(sources) },
+      ...modelMessages.filter((msg) => msg.role !== "system"),
     ],
   });
 
-  const encoder = new TextEncoder();
-  let fullResponse = "";
-
-  const readable = new ReadableStream({
-    async start(controller) {
-      try {
-        for await (const chunk of stream) {
-          const delta = chunk.choices[0]?.delta?.content;
-          if (delta) {
-            fullResponse += delta;
-            controller.enqueue(encoder.encode(delta));
-          }
-        }
-      } catch (error) {
-        controller.enqueue(encoder.encode("\n\n[Stream interrupted]"));
-      } finally {
-        controller.close();
-        if (supabase && queryId) {
-          await supabase
-            .from("queries")
-            .update({ response: fullResponse, sources: trimmedSources })
-            .eq("id", queryId);
-        }
+  return result.toUIMessageStreamResponse<UIMessage<ChatMetadata>>({
+    originalMessages: messages,
+    generateMessageId: () => crypto.randomUUID(),
+    messageMetadata: () => ({
+      sources: trimmedSources,
+      queryId,
+    }),
+    onFinish: async () => {
+      const fullResponse = await result.text;
+      if (supabase && queryId) {
+        await supabase
+          .from("queries")
+          .update({ response: fullResponse, sources: trimmedSources })
+          .eq("id", queryId);
       }
     },
+    onError: (error) => {
+      console.error("[chat] stream error", error);
+      return "An error occurred while generating the answer.";
+    },
   });
-
-  const encodedSources = Buffer.from(JSON.stringify(trimmedSources)).toString("base64");
-  const headers = new Headers({
-    "Content-Type": "text/plain; charset=utf-8",
-    "x-sources": encodedSources,
-  });
-  if (queryId) {
-    headers.set("x-query-id", queryId);
-  }
-
-  return new Response(readable, { headers });
 }
