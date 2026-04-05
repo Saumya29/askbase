@@ -201,11 +201,16 @@ export function Chat() {
       {/* Messages area */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
         {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full gap-3 text-center px-6">
-            <p className="text-sm font-medium">Ask anything about your documents</p>
-            <p className="text-xs text-mutedForeground max-w-xs leading-relaxed">
-              Upload a PDF or import a URL from the sidebar, then start asking questions.
-            </p>
+          <div className="flex flex-col items-center justify-center h-full gap-4 text-center px-8">
+            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+              <span className="font-display text-base font-semibold text-foreground">A</span>
+            </div>
+            <div className="space-y-1.5">
+              <p className="text-sm font-medium">Ask anything about your documents</p>
+              <p className="text-xs text-mutedForeground max-w-xs leading-relaxed">
+                Upload a PDF or import a URL from the sidebar, then start asking questions.
+              </p>
+            </div>
             <div className="flex flex-wrap justify-center gap-2 mt-1">
               {SUGGESTED_PROMPTS.map((prompt) => (
                 <button
@@ -214,7 +219,7 @@ export function Chat() {
                     setInput(prompt);
                     textareaRef.current?.focus();
                   }}
-                  className="text-xs px-3 py-1.5 rounded-full border border-border text-mutedForeground hover:text-foreground hover:border-foreground/40 transition-colors"
+                  className="text-xs px-3 py-1.5 rounded-full border border-border bg-card text-mutedForeground hover:text-foreground hover:border-foreground/30 hover:bg-accent transition-all"
                 >
                   {prompt}
                 </button>
@@ -226,15 +231,15 @@ export function Chat() {
             {messages.map((msg) => (
               <div
                 key={msg.id}
-                className={msg.role === "user" ? "flex justify-end" : "flex flex-col gap-1.5"}
+                className={msg.role === "user" ? "flex justify-end" : "flex flex-col gap-2"}
               >
                 {msg.role === "user" ? (
-                  <div className="max-w-[68%] bg-muted px-3.5 py-2.5 rounded-2xl rounded-tr-sm text-sm leading-relaxed">
+                  <div className="max-w-[68%] bg-muted border border-border px-4 py-2.5 rounded-2xl rounded-tr-sm text-sm leading-relaxed">
                     {msg.content}
                   </div>
                 ) : (
-                  <div className="max-w-[80%]">
-                    <div className="text-sm leading-relaxed prose prose-sm max-w-none prose-p:my-1 prose-li:my-0 prose-ul:my-1 prose-ol:my-1 prose-headings:my-2 prose-headings:font-semibold">
+                  <div className="max-w-[82%]">
+                    <div className="text-sm leading-relaxed prose prose-sm max-w-none prose-p:my-1.5 prose-li:my-0 prose-ul:my-1.5 prose-ol:my-1.5 prose-headings:my-2 prose-headings:font-semibold prose-headings:font-display">
                       <ReactMarkdown>{msg.content || (loading ? "..." : "")}</ReactMarkdown>
                     </div>
 
@@ -245,8 +250,8 @@ export function Chat() {
                           arr.findIndex((x) => x.document_name === s.document_name) === i
                       );
                       return (
-                        <div className="mt-2 space-y-1">
-                          <div className="flex flex-wrap gap-x-3 gap-y-1">
+                        <div className="mt-3 space-y-1.5">
+                          <div className="flex flex-wrap gap-x-3 gap-y-1.5">
                             {unique.map((source, index) =>
                               source.source_url ? (
                                 <a
@@ -254,7 +259,7 @@ export function Chat() {
                                   href={source.source_url}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-xs text-mutedForeground hover:text-foreground transition-colors"
+                                  className="text-xs text-mutedForeground hover:text-foreground transition-colors underline underline-offset-2"
                                 >
                                   [{index + 1}] {source.document_name || "Document"}
                                 </a>
@@ -266,7 +271,7 @@ export function Chat() {
                                       expandedSource === source.id ? null : source.id
                                     )
                                   }
-                                  className="text-xs text-mutedForeground hover:text-foreground transition-colors"
+                                  className="text-xs text-mutedForeground hover:text-foreground transition-colors underline underline-offset-2"
                                 >
                                   [{index + 1}] {source.document_name || "Document"}
                                 </button>
@@ -277,7 +282,7 @@ export function Chat() {
                             expandedSource === source.id && !source.source_url ? (
                               <div
                                 key={`expanded-${source.id}`}
-                                className="rounded-lg bg-muted px-3 py-2 text-xs text-mutedForeground leading-relaxed"
+                                className="rounded-xl bg-muted border border-border px-3.5 py-2.5 text-xs text-mutedForeground leading-relaxed"
                               >
                                 {source.content}
                               </div>
@@ -289,7 +294,7 @@ export function Chat() {
 
                     {/* Feedback */}
                     {msg.queryId && (
-                      <div className="mt-2 flex items-center gap-1.5">
+                      <div className="mt-2.5 flex items-center gap-2">
                         {feedbackGiven[msg.queryId] ? (
                           <span className="text-xs text-mutedForeground">
                             {feedbackGiven[msg.queryId] === 1
@@ -300,14 +305,14 @@ export function Chat() {
                           <>
                             <button
                               onClick={() => handleFeedback(msg.queryId!, 1)}
-                              className="text-mutedForeground hover:text-foreground transition-colors p-0.5"
+                              className="text-mutedForeground hover:text-foreground transition-colors p-1 rounded-md hover:bg-muted"
                               aria-label="Thumbs up"
                             >
                               <ThumbsUp className="h-3.5 w-3.5" />
                             </button>
                             <button
                               onClick={() => handleFeedback(msg.queryId!, -1)}
-                              className="text-mutedForeground hover:text-foreground transition-colors p-0.5"
+                              className="text-mutedForeground hover:text-foreground transition-colors p-1 rounded-md hover:bg-muted"
                               aria-label="Thumbs down"
                             >
                               <ThumbsDown className="h-3.5 w-3.5" />
@@ -325,8 +330,8 @@ export function Chat() {
       </div>
 
       {/* Input bar */}
-      <div className="border-t px-4 py-3 bg-background shrink-0">
-        <div className="flex items-end gap-2 max-w-3xl mx-auto">
+      <div className="border-t px-5 py-4 bg-card shrink-0">
+        <div className="flex items-end gap-2.5 max-w-3xl mx-auto">
           <textarea
             ref={textareaRef}
             value={input}
@@ -334,8 +339,8 @@ export function Chat() {
             onKeyDown={handleKeyDown}
             placeholder="Ask a question... (Enter to send, Shift+Enter for newline)"
             rows={1}
-            className="flex-1 resize-none overflow-hidden bg-muted rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-1 focus:ring-border placeholder:text-mutedForeground leading-relaxed"
-            style={{ minHeight: "42px", maxHeight: "120px" }}
+            className="flex-1 resize-none overflow-hidden bg-background border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring/20 placeholder:text-mutedForeground leading-relaxed transition-shadow"
+            style={{ minHeight: "44px", maxHeight: "120px" }}
           />
           {messages.length > 0 && (
             <button
@@ -348,7 +353,7 @@ export function Chat() {
           <button
             onClick={sendMessage}
             disabled={loading || !input.trim()}
-            className="shrink-0 h-[42px] w-[42px] flex items-center justify-center rounded-xl bg-foreground text-background disabled:opacity-25 hover:opacity-80 transition-opacity"
+            className="shrink-0 h-[44px] w-[44px] flex items-center justify-center rounded-xl bg-foreground text-primaryForeground disabled:opacity-25 hover:opacity-80 transition-opacity"
             aria-label="Send message"
           >
             <ArrowUp className="h-4 w-4" />

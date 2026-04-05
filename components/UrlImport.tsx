@@ -78,7 +78,6 @@ export function UrlImport({ onImported }: Props) {
         processLines(lines.join("\n\n"));
       }
 
-      // Flush remaining buffer (e.g. the complete event)
       if (buffer.trim()) {
         processLines(buffer);
       }
@@ -101,10 +100,10 @@ export function UrlImport({ onImported }: Props) {
 
   return (
     <div className="px-4 py-4">
-      <p className="text-xs font-medium text-mutedForeground uppercase tracking-wide mb-2">
+      <p className="text-xs font-semibold text-mutedForeground uppercase tracking-widest mb-3">
         Import URL
       </p>
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-2">
         <input
           type="url"
           placeholder="https://example.com"
@@ -112,24 +111,24 @@ export function UrlImport({ onImported }: Props) {
           onChange={(e) => setUrl(e.target.value)}
           onKeyDown={handleKeyDown}
           disabled={loading}
-          className="flex-1 min-w-0 bg-muted text-sm rounded-lg px-3 py-2 outline-none focus:ring-1 focus:ring-border placeholder:text-mutedForeground"
+          className="flex-1 min-w-0 bg-card border border-border text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-ring/20 placeholder:text-mutedForeground transition-shadow"
         />
         <button
           onClick={handleImport}
           disabled={loading || !url.trim()}
-          className="h-9 w-9 flex items-center justify-center rounded-lg bg-foreground text-background disabled:opacity-25 hover:opacity-80 transition-opacity shrink-0"
+          className="h-9 w-9 flex items-center justify-center rounded-lg bg-foreground text-primaryForeground disabled:opacity-25 hover:opacity-80 transition-opacity shrink-0"
           aria-label="Import URL"
         >
           <ArrowRight className="h-4 w-4" />
         </button>
       </div>
       {progress && (
-        <div className="mt-1.5 flex items-center gap-1.5">
+        <div className="mt-2 flex items-center gap-2">
           <p className="text-xs text-mutedForeground leading-snug flex-1 min-w-0">{progress}</p>
           {loading && (
             <button
               onClick={() => abortRef.current?.abort()}
-              className="text-xs text-destructive hover:text-destructive/80 transition-opacity shrink-0 flex items-center gap-0.5"
+              className="text-xs text-destructive hover:opacity-70 transition-opacity shrink-0 flex items-center gap-1"
               aria-label="Stop crawl"
             >
               <Square className="h-3 w-3" />
@@ -139,7 +138,7 @@ export function UrlImport({ onImported }: Props) {
         </div>
       )}
       {error && (
-        <p className="mt-1.5 text-xs text-destructive leading-snug">{error}</p>
+        <p className="mt-2 text-xs text-destructive leading-snug">{error}</p>
       )}
     </div>
   );
