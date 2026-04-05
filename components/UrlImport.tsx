@@ -100,7 +100,11 @@ export function UrlImport({ onImported }: Props) {
 
   return (
     <div className="px-4 py-4">
+<<<<<<< HEAD
       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3">
+=======
+      <p className="text-xs font-semibold text-mutedForeground uppercase tracking-widest mb-3">
+>>>>>>> 920acf8 (feat: build landing page and refresh app shell)
         Import URL
       </p>
       <div className="flex items-center gap-2">
@@ -111,12 +115,20 @@ export function UrlImport({ onImported }: Props) {
           onChange={(e) => setUrl(e.target.value)}
           onKeyDown={handleKeyDown}
           disabled={loading}
+<<<<<<< HEAD
           className="flex-1 min-w-0 bg-card border border-border text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-ring/20 placeholder:text-muted-foreground transition-shadow"
+=======
+          className="flex-1 min-w-0 bg-card border border-border text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-ring/20 placeholder:text-mutedForeground transition-shadow"
+>>>>>>> 920acf8 (feat: build landing page and refresh app shell)
         />
         <button
           onClick={handleImport}
           disabled={loading || !url.trim()}
+<<<<<<< HEAD
           className="h-9 w-9 flex items-center justify-center rounded-lg bg-foreground text-primary-foreground disabled:opacity-25 hover:opacity-80 transition-opacity shrink-0"
+=======
+          className="h-9 w-9 flex items-center justify-center rounded-lg bg-foreground text-primaryForeground disabled:opacity-25 hover:opacity-80 transition-opacity shrink-0"
+>>>>>>> 920acf8 (feat: build landing page and refresh app shell)
           aria-label="Import URL"
         >
           <ArrowRight className="h-4 w-4" />
@@ -124,7 +136,11 @@ export function UrlImport({ onImported }: Props) {
       </div>
       {progress && (
         <div className="mt-2 flex items-center gap-2">
+<<<<<<< HEAD
           <p className="text-xs text-muted-foreground leading-snug flex-1 min-w-0">{progress}</p>
+=======
+          <p className="text-xs text-mutedForeground leading-snug flex-1 min-w-0">{progress}</p>
+>>>>>>> 920acf8 (feat: build landing page and refresh app shell)
           {loading && (
             <button
               onClick={() => abortRef.current?.abort()}
