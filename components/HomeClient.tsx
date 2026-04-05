@@ -17,11 +17,7 @@ export function HomeClient() {
       <header className="flex items-center h-13 border-b bg-card px-5 shrink-0 gap-4">
         <Link
           href="/"
-<<<<<<< HEAD
           className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
-=======
-          className="flex items-center gap-1.5 text-mutedForeground hover:text-foreground transition-colors"
->>>>>>> 920acf8 (feat: build landing page and refresh app shell)
           aria-label="Back to home"
         >
           <ArrowLeft className="h-3.5 w-3.5" />

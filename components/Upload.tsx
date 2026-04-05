@@ -64,11 +64,7 @@ export function Upload({ onUploaded }: { onUploaded: () => void }) {
 
   return (
     <div className="px-4 pt-5 pb-4">
-<<<<<<< HEAD
       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3">
-=======
-      <p className="text-xs font-semibold text-mutedForeground uppercase tracking-widest mb-3">
->>>>>>> 920acf8 (feat: build landing page and refresh app shell)
         Upload PDF
       </p>
       <button
@@ -84,11 +80,7 @@ export function Upload({ onUploaded }: { onUploaded: () => void }) {
         className={`w-full flex flex-col items-center gap-2 py-5 rounded-xl border-2 border-dashed text-xs transition-all ${
           dragging
             ? "border-foreground bg-accent text-foreground"
-<<<<<<< HEAD
             : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground hover:bg-accent/50"
-=======
-            : "border-border text-mutedForeground hover:border-foreground/30 hover:text-foreground hover:bg-accent/50"
->>>>>>> 920acf8 (feat: build landing page and refresh app shell)
         } ${loading ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
       >
         <UploadIcon className="h-4 w-4" />
