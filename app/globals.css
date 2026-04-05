@@ -10,11 +10,17 @@
   border-color: theme(colors.border);
 }
 
-html,
-body {
+html {
   height: 100%;
 }
 
 body {
-  @apply bg-background text-foreground antialiased overflow-hidden;
+  @apply bg-background text-foreground antialiased;
+  height: 100%;
+}
+
+/* Full-height app shell layout */
+.app-shell {
+  height: 100%;
+  overflow: hidden;
 }

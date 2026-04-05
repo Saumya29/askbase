@@ -63,8 +63,8 @@ export function Upload({ onUploaded }: { onUploaded: () => void }) {
     (status.toLowerCase().includes("fail") || status.toLowerCase().includes("error"));
 
   return (
-    <div className="px-4 pt-4 pb-4">
-      <p className="text-xs font-medium text-mutedForeground uppercase tracking-wide mb-2">
+    <div className="px-4 pt-5 pb-4">
+      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3">
         Upload PDF
       </p>
       <button
@@ -77,19 +77,19 @@ export function Upload({ onUploaded }: { onUploaded: () => void }) {
         onDragLeave={() => setDragging(false)}
         onDrop={handleDrop}
         disabled={loading}
-        className={`w-full flex flex-col items-center gap-1.5 py-4 rounded-xl border border-dashed text-xs transition-colors ${
+        className={`w-full flex flex-col items-center gap-2 py-5 rounded-xl border-2 border-dashed text-xs transition-all ${
           dragging
-            ? "border-foreground bg-muted"
-            : "border-border text-mutedForeground hover:border-foreground/40 hover:text-foreground"
-        }`}
+            ? "border-foreground bg-accent text-foreground"
+            : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground hover:bg-accent/50"
+        } ${loading ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
       >
         <UploadIcon className="h-4 w-4" />
-        <span>
+        <span className="leading-snug text-center px-2">
           {loading
             ? "Processing..."
             : fileName
             ? fileName
-            : "Drop PDF or click to browse"}
+            : "Drop PDF here or click to browse"}
         </span>
       </button>
       <input
@@ -102,7 +102,7 @@ export function Upload({ onUploaded }: { onUploaded: () => void }) {
       {status && (
         <p
           className={`mt-2 text-xs leading-snug ${
-            isError ? "text-destructive" : "text-mutedForeground"
+            isError ? "text-destructive" : "text-muted-foreground"
           }`}
         >
           {status}
