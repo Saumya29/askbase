@@ -40,3 +40,17 @@ body {
 .animate-slide-up {
   animation: slide-up 0.2s ease-out;
 }
+
+/* Indeterminate progress bar */
+@keyframes indeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(400%);
+  }
+}
+
+.animate-indeterminate {
+  animation: indeterminate 1.4s ease-in-out infinite;
+}
