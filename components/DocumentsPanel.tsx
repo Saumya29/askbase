@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { FileText, Globe, Loader2 } from "lucide-react";
+import { FileText, Globe, Loader2, Trash2 } from "lucide-react";
 import { deviceHeaders } from "@/lib/api";
 
 export type DocumentRow = {
@@ -21,6 +21,40 @@ export type PendingDocument = {
   detail: string;
 };
 
+function formatRelativeTime(value: string) {
+  const date = new Date(value);
+  const diffMs = Date.now() - date.getTime();
+  const diffMinutes = Math.floor(diffMs / 60000);
+
+  if (diffMinutes < 1) return "just now";
+  if (diffMinutes < 60) return `${diffMinutes}m ago`;
+
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays < 30) return `${diffDays}d ago`;
+
+  return date.toLocaleDateString();
+}
+
+function dedupeDocuments(documents: DocumentRow[]) {
+  const seen = new Set<string>();
+  const deduped: DocumentRow[] = [];
+
+  for (const doc of documents) {
+    const key = doc.source_type === "url"
+      ? `url:${doc.source_url || doc.name}`
+      : `pdf:${doc.name}`;
+
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(doc);
+  }
+
+  return deduped;
+}
+
 export function DocumentsPanel({
   refreshKey,
   pendingDocuments = [],
@@ -32,6 +66,7 @@ export function DocumentsPanel({
   const [warning, setWarning] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -81,17 +116,48 @@ export function DocumentsPanel({
     return pendingDocuments.filter((doc) => !existingNames.has(`${doc.source_type}:${doc.name}`));
   }, [documents, pendingDocuments]);
 
-  const showEmptyState = !error && !loading && documents.length === 0 && visiblePendingDocuments.length === 0;
+  const visibleDocuments = useMemo(() => dedupeDocuments(documents), [documents]);
+
+  const showEmptyState = !error && !loading && visibleDocuments.length === 0 && visiblePendingDocuments.length === 0;
+
+  const handleDelete = async (doc: DocumentRow) => {
+    const label = doc.source_type === "url" ? doc.source_url || doc.name : doc.name;
+    const confirmed = window.confirm(`Delete ${label}? This will also delete related chunks.`);
+    if (!confirmed) return;
+
+    setDeletingId(doc.id);
+    try {
+      const res = await fetch("/api/documents", {
+        method: "DELETE",
+        headers: deviceHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({ id: doc.id }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to delete document");
+      }
+      setDocuments((prev) => prev.filter((item) => item.id !== doc.id));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete document");
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   return (
     <div className="px-4 py-4">
-      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3">
-        Documents
-      </p>
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
+          Documents
+        </p>
+        {visibleDocuments.length > 0 && (
+          <span className="text-[11px] text-muted-foreground">{visibleDocuments.length}</span>
+        )}
+      </div>
 
       {error && <p className="text-xs text-destructive leading-snug">{error}</p>}
 
-      {loading && !documents.length && !visiblePendingDocuments.length && !error && (
+      {loading && !visibleDocuments.length && !visiblePendingDocuments.length && !error && (
         <p className="text-xs text-muted-foreground italic">Loading...</p>
       )}
 
@@ -117,12 +183,12 @@ export function DocumentsPanel({
         </div>
       )}
 
-      {!error && documents.length > 0 && (
+      {!error && visibleDocuments.length > 0 && (
         <div className="space-y-0.5">
-          {documents.map((doc) => (
+          {visibleDocuments.map((doc) => (
             <div
               key={doc.id}
-              className="flex items-start gap-2.5 px-2.5 py-2.5 rounded-lg hover:bg-accent transition-colors"
+              className="group flex items-start gap-2.5 px-2.5 py-2.5 rounded-lg hover:bg-accent transition-colors"
             >
               {doc.source_type === "url" ? (
                 <Globe className="h-3.5 w-3.5 shrink-0 text-muted-foreground mt-0.5" />
@@ -130,10 +196,26 @@ export function DocumentsPanel({
                 <FileText className="h-3.5 w-3.5 shrink-0 text-muted-foreground mt-0.5" />
               )}
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium truncate leading-snug">{doc.name}</p>
+                <div className="flex items-start gap-2">
+                  <p className="text-xs font-medium truncate leading-snug flex-1">{doc.name}</p>
+                  <button
+                    onClick={() => handleDelete(doc)}
+                    disabled={deletingId === doc.id}
+                    className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all disabled:opacity-50 shrink-0"
+                    aria-label={`Delete ${doc.name}`}
+                    title="Delete document"
+                  >
+                    {deletingId === doc.id ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-3.5 w-3.5" />
+                    )}
+                  </button>
+                </div>
                 <p className="text-xs text-muted-foreground leading-snug mt-0.5">
                   {doc.chunk_count} chunks
                   {doc.source_type !== "url" && ` · ${(doc.size / 1024).toFixed(1)} KB`}
+                  {` · ${formatRelativeTime(doc.created_at)}`}
                 </p>
               </div>
             </div>

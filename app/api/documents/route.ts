@@ -14,26 +14,7 @@ type RawDocumentRow = {
   parent_id?: string | null;
 };
 
-export async function GET() {
-  const supabase = getSupabaseAdmin();
-  if (!supabase) {
-    return NextResponse.json({
-      documents: [],
-      warning: "Supabase is not configured.",
-    });
-  }
-
-  const { data, error } = await supabase
-    .from("documents")
-    .select("*")
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    console.error("[documents] failed to load documents:", error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
-  const rows = (data || []) as RawDocumentRow[];
+function normalizeDocuments(rows: RawDocumentRow[]) {
   const hasParentIdColumn = rows.length === 0 || rows.some((row) => "parent_id" in row);
   const hasSourceTypeColumn = rows.length === 0 || rows.some((row) => "source_type" in row);
 
@@ -59,8 +40,53 @@ export async function GET() {
     warnings.push("Database is missing source_type, so all documents are treated as PDFs.");
   }
 
-  return NextResponse.json({
+  return {
     documents,
     warning: warnings.length ? warnings.join(" ") : null,
-  });
+  };
+}
+
+export async function GET() {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) {
+    return NextResponse.json({
+      documents: [],
+      warning: "Supabase is not configured.",
+    });
+  }
+
+  const { data, error } = await supabase
+    .from("documents")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("[documents] failed to load documents:", error.message);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json(normalizeDocuments((data || []) as RawDocumentRow[]));
+}
+
+export async function DELETE(req: Request) {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) {
+    return NextResponse.json({ error: "Supabase is not configured." }, { status: 500 });
+  }
+
+  const body = await req.json().catch(() => null);
+  const id = body?.id as string | undefined;
+
+  if (!id) {
+    return NextResponse.json({ error: "Document id is required." }, { status: 400 });
+  }
+
+  const { error } = await supabase.from("documents").delete().eq("id", id);
+
+  if (error) {
+    console.error("[documents] failed to delete document:", error.message);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ ok: true });
 }
