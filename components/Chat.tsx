@@ -207,7 +207,7 @@ export function Chat() {
             </div>
             <div className="space-y-1.5">
               <p className="text-sm font-medium">Ask anything about your documents</p>
-              <p className="text-xs text-mutedForeground max-w-xs leading-relaxed">
+              <p className="text-xs text-muted-foreground max-w-xs leading-relaxed">
                 Upload a PDF or import a URL from the sidebar, then start asking questions.
               </p>
             </div>
@@ -219,7 +219,7 @@ export function Chat() {
                     setInput(prompt);
                     textareaRef.current?.focus();
                   }}
-                  className="text-xs px-3 py-1.5 rounded-full border border-border bg-card text-mutedForeground hover:text-foreground hover:border-foreground/30 hover:bg-accent transition-all"
+                  className="text-xs px-3 py-1.5 rounded-full border border-border bg-card text-muted-foreground hover:text-foreground hover:border-foreground/30 hover:bg-accent transition-all"
                 >
                   {prompt}
                 </button>
@@ -259,7 +259,7 @@ export function Chat() {
                                   href={source.source_url}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-xs text-mutedForeground hover:text-foreground transition-colors underline underline-offset-2"
+                                  className="text-xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
                                 >
                                   [{index + 1}] {source.document_name || "Document"}
                                 </a>
@@ -271,7 +271,7 @@ export function Chat() {
                                       expandedSource === source.id ? null : source.id
                                     )
                                   }
-                                  className="text-xs text-mutedForeground hover:text-foreground transition-colors underline underline-offset-2"
+                                  className="text-xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
                                 >
                                   [{index + 1}] {source.document_name || "Document"}
                                 </button>
@@ -282,7 +282,7 @@ export function Chat() {
                             expandedSource === source.id && !source.source_url ? (
                               <div
                                 key={`expanded-${source.id}`}
-                                className="rounded-xl bg-muted border border-border px-3.5 py-2.5 text-xs text-mutedForeground leading-relaxed"
+                                className="rounded-xl bg-muted border border-border px-3.5 py-2.5 text-xs text-muted-foreground leading-relaxed"
                               >
                                 {source.content}
                               </div>
@@ -296,7 +296,7 @@ export function Chat() {
                     {msg.queryId && (
                       <div className="mt-2.5 flex items-center gap-2">
                         {feedbackGiven[msg.queryId] ? (
-                          <span className="text-xs text-mutedForeground">
+                          <span className="text-xs text-muted-foreground">
                             {feedbackGiven[msg.queryId] === 1
                               ? "Thanks!"
                               : "Thanks for letting us know."}
@@ -305,14 +305,14 @@ export function Chat() {
                           <>
                             <button
                               onClick={() => handleFeedback(msg.queryId!, 1)}
-                              className="text-mutedForeground hover:text-foreground transition-colors p-1 rounded-md hover:bg-muted"
+                              className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md hover:bg-muted"
                               aria-label="Thumbs up"
                             >
                               <ThumbsUp className="h-3.5 w-3.5" />
                             </button>
                             <button
                               onClick={() => handleFeedback(msg.queryId!, -1)}
-                              className="text-mutedForeground hover:text-foreground transition-colors p-1 rounded-md hover:bg-muted"
+                              className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md hover:bg-muted"
                               aria-label="Thumbs down"
                             >
                               <ThumbsDown className="h-3.5 w-3.5" />
@@ -339,13 +339,13 @@ export function Chat() {
             onKeyDown={handleKeyDown}
             placeholder="Ask a question... (Enter to send, Shift+Enter for newline)"
             rows={1}
-            className="flex-1 resize-none overflow-hidden bg-background border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring/20 placeholder:text-mutedForeground leading-relaxed transition-shadow"
+            className="flex-1 resize-none overflow-hidden bg-background border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring/20 placeholder:text-muted-foreground leading-relaxed transition-shadow"
             style={{ minHeight: "44px", maxHeight: "120px" }}
           />
           {messages.length > 0 && (
             <button
               onClick={clearChat}
-              className="text-xs text-mutedForeground hover:text-foreground transition-colors pb-2.5 shrink-0"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors pb-2.5 shrink-0"
             >
               Clear
             </button>
@@ -353,7 +353,7 @@ export function Chat() {
           <button
             onClick={sendMessage}
             disabled={loading || !input.trim()}
-            className="shrink-0 h-[44px] w-[44px] flex items-center justify-center rounded-xl bg-foreground text-primaryForeground disabled:opacity-25 hover:opacity-80 transition-opacity"
+            className="shrink-0 h-[44px] w-[44px] flex items-center justify-center rounded-xl bg-foreground text-primary-foreground disabled:opacity-25 hover:opacity-80 transition-opacity"
             aria-label="Send message"
           >
             <ArrowUp className="h-4 w-4" />

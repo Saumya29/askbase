@@ -38,12 +38,12 @@ export function DocumentsPanel({ refreshKey }: { refreshKey: number }) {
 
   return (
     <div className="px-4 py-4">
-      <p className="text-xs font-semibold text-mutedForeground uppercase tracking-widest mb-3">
+      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3">
         Documents
       </p>
 
       {documents.length === 0 ? (
-        <p className="text-xs text-mutedForeground italic">No documents yet.</p>
+        <p className="text-xs text-muted-foreground italic">No documents yet.</p>
       ) : (
         <div className="space-y-0.5">
           {documents.map((doc) => (
@@ -52,13 +52,13 @@ export function DocumentsPanel({ refreshKey }: { refreshKey: number }) {
               className="flex items-start gap-2.5 px-2.5 py-2.5 rounded-lg hover:bg-accent transition-colors"
             >
               {doc.source_type === "url" ? (
-                <Globe className="h-3.5 w-3.5 shrink-0 text-mutedForeground mt-0.5" />
+                <Globe className="h-3.5 w-3.5 shrink-0 text-muted-foreground mt-0.5" />
               ) : (
-                <FileText className="h-3.5 w-3.5 shrink-0 text-mutedForeground mt-0.5" />
+                <FileText className="h-3.5 w-3.5 shrink-0 text-muted-foreground mt-0.5" />
               )}
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium truncate leading-snug">{doc.name}</p>
-                <p className="text-xs text-mutedForeground leading-snug mt-0.5">
+                <p className="text-xs text-muted-foreground leading-snug mt-0.5">
                   {doc.chunk_count} chunks
                   {doc.source_type !== "url" && ` · ${(doc.size / 1024).toFixed(1)} KB`}
                 </p>
@@ -69,7 +69,7 @@ export function DocumentsPanel({ refreshKey }: { refreshKey: number }) {
       )}
 
       {warning && (
-        <p className="mt-3 text-xs text-mutedForeground">{warning}</p>
+        <p className="mt-3 text-xs text-muted-foreground">{warning}</p>
       )}
     </div>
   );
