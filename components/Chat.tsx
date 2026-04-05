@@ -22,14 +22,63 @@ type ChatMetadata = {
 };
 
 type ChatMessage = UIMessage<ChatMetadata>;
+type LegacyMessage = {
+  id?: string;
+  role?: "user" | "assistant";
+  content?: string;
+  sources?: Source[];
+  queryId?: string;
+};
 
 const STORAGE_KEY = "askbase-chat-messages";
+
+function normalizeStoredMessages(raw: unknown): ChatMessage[] {
+  if (!Array.isArray(raw)) return [];
+
+  return raw
+    .map((message): ChatMessage | null => {
+      if (!message || typeof message !== "object") return null;
+
+      const maybeMessage = message as Partial<ChatMessage> & LegacyMessage;
+
+      if (Array.isArray(maybeMessage.parts) && typeof maybeMessage.role === "string") {
+        const hasVisibleText = maybeMessage.parts.some(
+          (part) => part.type === "text" && typeof part.text === "string" && part.text.trim().length > 0
+        );
+        const hasMetadata = Boolean(maybeMessage.metadata?.sources?.length || maybeMessage.metadata?.queryId);
+        if (!hasVisibleText && !hasMetadata) return null;
+        return maybeMessage as ChatMessage;
+      }
+
+      if ((maybeMessage.role === "user" || maybeMessage.role === "assistant") && typeof maybeMessage.content === "string") {
+        const content = maybeMessage.content.trim();
+        const hasMetadata = Boolean(maybeMessage.sources?.length || maybeMessage.queryId);
+        if (!content && !hasMetadata) return null;
+
+        return {
+          id: maybeMessage.id || crypto.randomUUID(),
+          role: maybeMessage.role,
+          parts: content ? [{ type: "text", text: content }] : [],
+          metadata:
+            maybeMessage.role === "assistant"
+              ? {
+                  sources: maybeMessage.sources,
+                  queryId: maybeMessage.queryId,
+                }
+              : undefined,
+        } as ChatMessage;
+      }
+
+      return null;
+    })
+    .filter((message): message is ChatMessage => message !== null);
+}
 
 function loadMessages(): ChatMessage[] {
   if (typeof window === "undefined") return [];
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
+    return stored ? normalizeStoredMessages(JSON.parse(stored)) : [];
   } catch {
     return [];
   }
