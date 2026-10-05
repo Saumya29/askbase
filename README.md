@@ -97,6 +97,16 @@ npm start
 
 ## Prototype limits
 
+### Sample documents
+
+`public/sample-documents/` contains three one-page Harbour AI PDFs: a product brief, pilot results, and a safety policy. All facts and figures are fictional and must not be presented as AskBase performance measurements. Upload these files to run a reproducible demo:
+
+- "For Harbour AI, compare the pilot targets with actual results. Which targets passed?" Expected: 30% handling-time reduction versus 40% target (fail), 96% citation correctness versus 95% target (pass), 3% unsupported answers versus below 2% (fail).
+- "Can Harbour AI send replies or issue refunds without approval?" Expected: no; the beta requires human approval.
+- "What does Harbour AI need to fix before unattended sending?" Expected: expired policies, ambiguous product identifiers, and tool timeouts; evaluate at least 100 new refund-policy tickets and recheck all three targets.
+- "What is Harbour AI's approved public launch date?" Expected: not provided; the documents say no date has been approved.
+- "What is Harbour AI's proposed monthly revenue at 10 paying shops?" Expected: AED 2,990 before costs, a proposal rather than actual revenue.
+
 This is a working prototype, not a private document workspace. Document listing and chat retrieval currently use a shared corpus, and admin routes are not authenticated. Device identifiers are tracking data, not an access-control boundary. Use public or sample documents for the demo.
 
 Next improvements:

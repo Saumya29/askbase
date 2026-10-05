@@ -33,7 +33,7 @@ export async function POST(req: Request) {
 
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-    const parsed = await pdfParse(buffer);
+    const parsed = await pdfParse(buffer, { version: "v2.0.550" });
     const text = parsed.text || "";
 
     const chunks = chunkText(text);
