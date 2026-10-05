@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import pdfParse from "pdf-parse";
+import { extractPdfText } from "@/lib/pdf";
 import { chunkText } from "@/lib/chunking";
 import { embedTexts } from "@/lib/embeddings";
 import { getSupabaseAdmin } from "@/lib/supabase";
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
 
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-    const parsed = await pdfParse(buffer, { version: "v2.0.550" });
+    const parsed = await extractPdfText(buffer);
     const text = parsed.text || "";
 
     const chunks = chunkText(text);

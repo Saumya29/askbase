@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "node --import tsx --test tests/*.test.ts tests/*.test.tsx"
+    "test": "node --import tsx --test tests/*.test.ts tests/*.test.tsx",
+    "test:built-upload": "node scripts/test-built-upload.cjs"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.50",
@@ -21,7 +22,7 @@
     "lucide-react": "^0.453.0",
     "next": "14.2.35",
     "openai": "^4.72.0",
-    "pdf-parse": "^1.1.1",
+    "pdf-parse": "2.4.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-markdown": "^10.1.0",

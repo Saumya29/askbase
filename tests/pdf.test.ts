@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import pdfParse from "pdf-parse";
+import { extractPdfText } from "../lib/pdf";
 import { POST as upload } from "../app/api/upload/route";
 import { env } from "../lib/env";
 import { Embeddings } from "openai/resources/embeddings";
@@ -10,8 +10,8 @@ const filenames = ["Harbour_AI_Product_Brief.pdf", "Harbour_AI_Pilot_Results.pdf
 
 test("sample PDFs extract readable text through the upload parser", async () => {
   for (const name of filenames) {
-    const parsed = await pdfParse(readFileSync(`public/sample-documents/${name}`), { version: "v2.0.550" });
-    assert.equal(parsed.numpages, 1);
+    const parsed = await extractPdfText(readFileSync(`public/sample-documents/${name}`));
+    assert.equal(parsed.total, 1);
     assert.match(parsed.text, /fictional/i);
     assert.ok(parsed.text.length > 1000);
   }
