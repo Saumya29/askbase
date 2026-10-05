@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "node --import tsx --test tests/*.test.ts tests/*.test.tsx"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.50",
@@ -18,7 +19,7 @@
     "clsx": "^2.1.1",
     "linkedom": "^0.18.12",
     "lucide-react": "^0.453.0",
-    "next": "14.2.5",
+    "next": "14.2.35",
     "openai": "^4.72.0",
     "pdf-parse": "^1.1.1",
     "react": "^18.3.1",
@@ -35,6 +36,7 @@
     "autoprefixer": "^10.4.19",
     "postcss": "^8.4.40",
     "tailwindcss": "^3.4.7",
+    "tsx": "^4.23.15",
     "typescript": "^5.5.4"
   }
 }

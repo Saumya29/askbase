@@ -3,14 +3,11 @@ import { getOpenAIClient } from "@/lib/openai";
 export const EMBEDDING_DIMENSIONS = 1536;
 const EMBEDDING_MODEL = "text-embedding-3-small";
 
-export function emptyEmbedding() {
-  return Array.from({ length: EMBEDDING_DIMENSIONS }, () => 0);
-}
-
 export async function embedTexts(texts: string[]) {
+  if (!texts.length) return [];
   const client = getOpenAIClient();
   if (!client) {
-    return texts.map(() => emptyEmbedding());
+    throw new Error("OpenAI is not configured. Embeddings could not be created.");
   }
 
   const response = await client.embeddings.create({

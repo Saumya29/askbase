@@ -12,7 +12,7 @@ export type RetrievedChunk = {
 export async function matchChunks(embedding: number[], topK = 6) {
   const supabase = getSupabaseAdmin();
   if (!supabase) {
-    return [] as RetrievedChunk[];
+    throw new Error("Document storage is not configured.");
   }
 
   const { data, error } = await supabase.rpc("match_chunks", {
@@ -21,9 +21,8 @@ export async function matchChunks(embedding: number[], topK = 6) {
     filter_device_id: null,
   });
 
-  if (error || !data) {
-    return [] as RetrievedChunk[];
-  }
+  if (error) throw new Error("Document search failed.", { cause: error });
+  if (!Array.isArray(data)) throw new Error("Document search returned an invalid result.");
 
   return data as RetrievedChunk[];
 }

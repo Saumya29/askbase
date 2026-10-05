@@ -104,8 +104,9 @@ Next improvements:
 - Authentication, protected admin routes, and enforced document access throughout the API and retrieval path.
 - A retrieval evaluation set with known source passages, followed by hybrid search and reranking experiments.
 - Grounding checks for citations and query rewriting for follow-up questions. Retrieval currently embeds only the latest user message.
-- Explicit dependency failures instead of zero-vector embeddings or silent empty retrieval results.
 - Better handling of large documents, failed imports, and repeated feedback.
+
+Reliability checks added: bounded overlapping chunks, stable citation numbers with full passage previews, explicit dependency failures, upload size/text validation, and import storage errors. Run `npm test` for the regression suite. These checks use mocked services; they do not measure live model accuracy.
 
 No benchmark for answer accuracy, retrieval quality, or latency has been published. Feedback-driven ranking is implemented; its effect on answer quality has not been measured.
 

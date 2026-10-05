@@ -6,6 +6,7 @@ import { DefaultChatTransport, UIMessage } from "ai";
 import { ArrowUp, RotateCcw, Square, ThumbsDown, ThumbsUp } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { deviceHeaders } from "@/lib/api";
+import { SourceCitations } from "@/components/SourceCitations";
 
 export type Source = {
   id: string;
@@ -95,6 +96,16 @@ function getMessageText(message: ChatMessage) {
     ?.filter((part) => part.type === "text")
     .map((part) => part.text)
     .join("") ?? "";
+}
+
+function getChatErrorMessage(error: Error) {
+  try {
+    const body = JSON.parse(error.message);
+    if (typeof body.error === "string") return body.error;
+  } catch {
+    // Streaming errors already contain a readable message.
+  }
+  return error.message;
 }
 
 export function Chat() {
@@ -235,48 +246,13 @@ export function Chat() {
                       <ReactMarkdown>{msg.content || (isLoading ? "..." : "")}</ReactMarkdown>
                     </div>
 
-                    {msg.metadata?.sources && msg.metadata.sources.length > 0 && (() => {
-                      const unique = msg.metadata!.sources!.filter(
-                        (s, i, arr) => arr.findIndex((x) => x.document_name === s.document_name) === i
-                      );
-                      return (
-                        <div className="mt-3 space-y-1.5">
-                          <div className="flex flex-wrap gap-x-3 gap-y-1.5">
-                            {unique.map((source, index) =>
-                              source.source_url ? (
-                                <a
-                                  key={source.id}
-                                  href={source.source_url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
-                                >
-                                  [{index + 1}] {source.document_name || "Document"}
-                                </a>
-                              ) : (
-                                <button
-                                  key={source.id}
-                                  onClick={() => setExpandedSource(expandedSource === source.id ? null : source.id)}
-                                  className="text-xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
-                                >
-                                  [{index + 1}] {source.document_name || "Document"}
-                                </button>
-                              )
-                            )}
-                          </div>
-                          {unique.map((source) =>
-                            expandedSource === source.id && !source.source_url ? (
-                              <div
-                                key={`expanded-${source.id}`}
-                                className="rounded-xl bg-muted border border-border px-3.5 py-2.5 text-xs text-muted-foreground leading-relaxed"
-                              >
-                                {source.content}
-                              </div>
-                            ) : null
-                          )}
-                        </div>
-                      );
-                    })()}
+                    {msg.metadata?.sources && msg.metadata.sources.length > 0 && (
+                      <SourceCitations
+                        sources={msg.metadata.sources}
+                        expandedSource={expandedSource}
+                        onToggle={(id) => setExpandedSource(expandedSource === id ? null : id)}
+                      />
+                    )}
 
                     {msg.metadata?.queryId && (
                       <div className="mt-2.5 flex items-center gap-2">
@@ -312,7 +288,7 @@ export function Chat() {
             ))}
 
             {error && (
-              <div className="text-xs text-destructive">{error.message}</div>
+              <div role="alert" className="text-xs text-destructive">{getChatErrorMessage(error)}</div>
             )}
           </div>
         )}

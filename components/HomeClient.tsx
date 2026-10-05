@@ -393,6 +393,10 @@ export function HomeClient() {
         </div>
       </header>
 
+      <p className="border-b bg-muted px-5 py-2 text-xs text-muted-foreground">
+        Shared demo: documents are visible to other visitors. Use public or sample files only.
+      </p>
+
       {/* Main area */}
       <div className="flex flex-1 overflow-hidden">
         <aside className="w-72 border-r flex flex-col overflow-hidden shrink-0 bg-surface">

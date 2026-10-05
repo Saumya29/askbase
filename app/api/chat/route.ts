@@ -1,4 +1,4 @@
-import { convertToModelMessages, streamText, type UIMessage } from "ai";
+import { convertToModelMessages, safeValidateUIMessages, streamText, createUIMessageStream, createUIMessageStreamResponse, type UIMessage } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { embedTexts } from "@/lib/embeddings";
 import { matchChunks } from "@/lib/retrieval";
@@ -39,7 +39,9 @@ function buildSystemPrompt(sources: { document_name?: string | null; content: st
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
-  const messages = (body?.messages ?? []) as UIMessage<ChatMetadata>[];
+  const validated = await safeValidateUIMessages<UIMessage<ChatMetadata>>({ messages: body?.messages });
+  if (!validated.success) return Response.json({ error: "Invalid chat messages" }, { status: 400 });
+  const messages = validated.data;
   const lastUser = [...messages].reverse().find((msg) => msg.role === "user");
 
   const lastUserText =
@@ -48,7 +50,7 @@ export async function POST(req: Request) {
       .map((part) => part.text)
       .join("") || "";
 
-  if (!lastUserText) {
+  if (!lastUserText.trim()) {
     return new Response(JSON.stringify({ error: "Missing user message" }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
@@ -57,13 +59,32 @@ export async function POST(req: Request) {
 
   const deviceId = req.headers.get("x-device-id") || undefined;
   const supabase = getSupabaseAdmin();
+  if (!env.openaiApiKey || !supabase) {
+    return Response.json({ error: "Chat is temporarily unavailable. Please try again later." }, { status: 503 });
+  }
 
-  const [queryEmbedding] = await embedTexts([lastUserText]);
-  const sources = await matchChunks(queryEmbedding, MAX_SOURCES);
-  const trimmedSources = sources.map((source) => ({
-    ...source,
-    content: source.content.slice(0, 240),
-  }));
+  let sources: Awaited<ReturnType<typeof matchChunks>>;
+  try {
+    const [queryEmbedding] = await embedTexts([lastUserText]);
+    sources = await matchChunks(queryEmbedding, MAX_SOURCES);
+  } catch (error) {
+    console.error("[chat] retrieval error", error);
+    return Response.json({ error: "Could not search the documents. Please try again." }, { status: 502 });
+  }
+
+  if (!sources.length) {
+    return createUIMessageStreamResponse({
+      stream: createUIMessageStream<UIMessage<ChatMetadata>>({
+        execute: ({ writer }) => {
+          writer.write({ type: "start", messageId: crypto.randomUUID(), messageMetadata: { sources: [] } });
+          writer.write({ type: "text-start", id: "no-sources" });
+          writer.write({ type: "text-delta", id: "no-sources", delta: "I couldn't find any source passages. Upload a PDF or import a public URL, then ask again." });
+          writer.write({ type: "text-end", id: "no-sources" });
+          writer.write({ type: "finish" });
+        },
+      }),
+    });
+  }
 
   const queryInsert = supabase
     ? await supabase
@@ -80,22 +101,7 @@ export async function POST(req: Request) {
 
   const queryId = queryInsert?.data?.id;
 
-  if (!env.openaiApiKey) {
-    const fallbackText = "OpenAI is not configured. Add OPENAI_API_KEY to enable chat responses.";
-    if (supabase && queryId) {
-      await supabase
-        .from("queries")
-        .update({ response: fallbackText, sources: trimmedSources })
-        .eq("id", queryId);
-    }
-
-    return new Response(JSON.stringify({ error: fallbackText }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
-  const modelMessages = await convertToModelMessages(messages as any);
+  const modelMessages = await convertToModelMessages(messages);
   const result = streamText({
     model: openai(CHAT_MODEL),
     messages: [
@@ -108,7 +114,7 @@ export async function POST(req: Request) {
     originalMessages: messages,
     generateMessageId: () => crypto.randomUUID(),
     messageMetadata: () => ({
-      sources: trimmedSources,
+      sources,
       queryId,
     }),
     onFinish: async () => {
@@ -116,7 +122,7 @@ export async function POST(req: Request) {
       if (supabase && queryId) {
         await supabase
           .from("queries")
-          .update({ response: fullResponse, sources: trimmedSources })
+          .update({ response: fullResponse, sources })
           .eq("id", queryId);
       }
     },

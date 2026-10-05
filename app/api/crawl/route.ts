@@ -2,14 +2,15 @@ import { crawlSite } from "@/lib/crawl";
 import { chunkText } from "@/lib/chunking";
 import { embedTexts } from "@/lib/embeddings";
 import { getSupabaseAdmin } from "@/lib/supabase";
+import { env } from "@/lib/env";
 
 export const maxDuration = 60;
 
 export async function POST(req: Request) {
-  const body = await req.json();
-  const { url } = body as { url?: string };
+  const body = await req.json().catch(() => null);
+  const url = body?.url;
 
-  if (!url) {
+  if (typeof url !== "string" || !url.trim()) {
     return new Response(JSON.stringify({ error: "URL is required" }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
@@ -19,7 +20,7 @@ export async function POST(req: Request) {
   let parsedUrl: URL;
   try {
     parsedUrl = new URL(url);
-    if (!parsedUrl.protocol.startsWith("http")) throw new Error();
+    if (!["http:", "https:"].includes(parsedUrl.protocol)) throw new Error();
   } catch {
     return new Response(JSON.stringify({ error: "Invalid URL" }), {
       status: 400,
@@ -28,9 +29,9 @@ export async function POST(req: Request) {
   }
 
   const supabase = getSupabaseAdmin();
-  if (!supabase) {
-    return new Response(JSON.stringify({ error: "Supabase not configured" }), {
-      status: 500,
+  if (!supabase || !env.openaiApiKey) {
+    return new Response(JSON.stringify({ error: "URL import is temporarily unavailable. Please try again later." }), {
+      status: 503,
       headers: { "Content-Type": "application/json" },
     });
   }
@@ -61,7 +62,6 @@ export async function POST(req: Request) {
 
         if (parentError || !parentDoc) {
           send({ type: "error", message: parentError?.message || "Failed to create document" });
-          controller.close();
           return;
         }
 
@@ -101,7 +101,7 @@ export async function POST(req: Request) {
             .select("id")
             .single();
 
-          if (childError || !childDoc) continue;
+          if (childError || !childDoc) throw new Error("Could not save the imported page. Please retry the import.");
 
           // Insert chunks
           const chunkRows = chunks.map((chunk, i) => ({
@@ -111,7 +111,8 @@ export async function POST(req: Request) {
             metadata: JSON.stringify({ url: page.url, title: page.title }),
           }));
 
-          await supabase.from("chunks").insert(chunkRows);
+          const { error: chunkError } = await supabase.from("chunks").insert(chunkRows);
+          if (chunkError) throw new Error("Could not index the imported page. Please retry the import.");
 
           totalChunks += chunks.length;
 
@@ -124,10 +125,12 @@ export async function POST(req: Request) {
         }
 
         // Update parent chunk_count
-        await supabase
+        const { error: updateError } = await supabase
           .from("documents")
           .update({ chunk_count: totalChunks })
           .eq("id", parentId);
+        if (updateError) throw new Error("Could not finish saving the import. Please retry.");
+        if (!totalChunks) throw new Error("No readable text was found. Try a public page with text content.");
 
         send({
           type: "complete",
