@@ -394,7 +394,7 @@ export function HomeClient() {
       </header>
 
       <p className="border-b bg-muted px-5 py-2 text-xs text-muted-foreground">
-        Shared demo: documents are visible to other visitors. Use public or sample files only.
+        Shared demo: uploaded documents are visible to other visitors. Use public files only.
       </p>
 
       {/* Main area */}
@@ -406,6 +406,11 @@ export function HomeClient() {
         </aside>
 
         <main className="flex-1 flex flex-col overflow-hidden bg-background">
+          <div className="border-b px-6 py-3 text-xs text-muted-foreground leading-relaxed">
+            <p className="font-medium text-foreground">Answers from documents, with sources</p>
+            <p>Ask about a document listed on the left, or upload a public PDF. Questions outside those documents may not have an answer.</p>
+            <p className="mt-1">The Harbour AI files are fictional samples for testing document Q&amp;A, not a real company or product.</p>
+          </div>
           <Chat />
         </main>
       </div>

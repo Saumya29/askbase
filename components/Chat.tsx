@@ -86,9 +86,9 @@ function loadMessages(): ChatMessage[] {
 }
 
 const SUGGESTED_PROMPTS = [
-  "Summarize the document",
-  "What are the key points?",
-  "List the main topics",
+  "Summarize these documents in plain English",
+  "What decisions and next steps do these documents describe?",
+  "What information is missing from these documents?",
 ];
 
 function getMessageText(message: ChatMessage) {
@@ -209,9 +209,9 @@ export function Chat() {
               <span className="font-display text-base font-semibold text-foreground">A</span>
             </div>
             <div className="space-y-1.5">
-              <p className="text-sm font-medium">Ask anything about your documents</p>
+              <p className="text-sm font-medium">Ask questions about the documents</p>
               <p className="text-xs text-muted-foreground max-w-xs leading-relaxed">
-                Upload a PDF or import a URL from the sidebar, then start asking questions.
+                Try the fictional sample documents, or upload a public PDF or URL to ask about your own material.
               </p>
             </div>
             <div className="flex flex-wrap justify-center gap-2 mt-1">
