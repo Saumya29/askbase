@@ -31,3 +31,7 @@ export function renderGroundedAnswer(claims: AnswerClaim[], sources: RetrievedCh
   });
   return { text: lines.length ? lines.join('\n\n') : OUT_OF_SCOPE, sources: used };
 }
+
+export function reviewedClaims(claims: AnswerClaim[], verdicts: { claimId: string; supported: boolean }[]) {
+  return claims.filter((_, index) => verdicts.some(v => v.claimId === `claim-${String.fromCharCode(65 + index)}` && v.supported));
+}

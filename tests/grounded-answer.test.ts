@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { validateEvidence, renderGroundedAnswer, OUT_OF_SCOPE } from '../lib/grounded-answer';
+import { validateEvidence, reviewedClaims, renderGroundedAnswer, OUT_OF_SCOPE } from '../lib/grounded-answer';
 const sources = [
   {id:'policy',document_id:'p',content:'Every reply requires approval.',similarity:0.8},
   {id:'brief',document_id:'b',content:'No public launch date has been approved.',similarity:0.7},
@@ -18,4 +18,13 @@ test('only supporting sources are shown and numbers are assigned by the renderer
 });
 test('unsupported questions have no source cards', () => {
   assert.deepEqual(renderGroundedAnswer([],sources),{text:OUT_OF_SCOPE,sources:[]});
+});
+
+test('named review verdicts preserve all supported claims even when returned out of order', () => {
+  const claims = ['10 minutes', '7 minutes', 'No approved date'].map(text => ({text,evidence:[]}));
+  assert.deepEqual(reviewedClaims(claims,[{claimId:'claim-C',supported:true},{claimId:'claim-A',supported:true},{claimId:'claim-B',supported:true}]),claims);
+});
+test('rejected claims and invented review IDs cannot change the accepted set', () => {
+  const claims = ['supported', 'unsupported'].map(text => ({text,evidence:[]}));
+  assert.deepEqual(reviewedClaims(claims,[{claimId:'claim-A',supported:true},{claimId:'claim-B',supported:false},{claimId:'claim-Z',supported:true}]),[claims[0]]);
 });
