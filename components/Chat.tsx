@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, UIMessage } from "ai";
-import { ArrowUp, RotateCcw, Square, Loader2, ThumbsDown, ThumbsUp } from "lucide-react";
+import { ArrowUp, RotateCcw, Square, Loader2, Sparkles, ThumbsDown, ThumbsUp } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { deviceHeaders } from "@/lib/api";
 import { SourceCitations } from "@/components/SourceCitations";
@@ -86,9 +86,9 @@ function loadMessages(): ChatMessage[] {
 }
 
 const SUGGESTED_PROMPTS = [
-  "Summarize the documents",
-  "Find decisions and next steps",
-  "What is still undecided?",
+  "Summarize the main points",
+  "Compare these documents",
+  "List decisions and next steps",
 ];
 
 function getMessageText(message: ChatMessage) {
@@ -206,24 +206,21 @@ export function Chat() {
     <div className="flex flex-col h-full min-h-0">
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
         {normalizedMessages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full gap-4 text-center px-8">
-            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-              <span className="font-display text-base font-semibold text-foreground">A</span>
+          <div className="askbase-empty-state">
+            <div className="askbase-empty-icon"><Sparkles size={19} /></div>
+            <div className="askbase-empty-copy">
+              <span>DOCUMENT ASSISTANT</span>
+              <h1>What’s in your documents?</h1>
+              <p>Ask in your own words. Answers include citations so you can check the source.</p>
             </div>
-            <div className="space-y-1.5">
-              <p className="text-sm font-medium">Ask questions about the documents</p>
-              <p className="text-xs text-muted-foreground max-w-xs leading-relaxed">
-                Try the fictional sample documents, or upload a public PDF or URL to ask about your own material.
-              </p>
-            </div>
-            <div className="flex flex-wrap justify-center gap-2 mt-1">
+            <div className="askbase-prompt-list">
               {SUGGESTED_PROMPTS.map((prompt) => (
                 <button
                   key={prompt}
                   onClick={() => {
                     void sendMessage({ text: prompt });
                   }}
-                  className="text-xs px-3 py-1.5 rounded-full border border-border bg-card text-muted-foreground hover:text-foreground hover:border-foreground/30 hover:bg-accent transition-all"
+                  className="askbase-prompt"
                 >
                   {prompt}
                 </button>
@@ -238,7 +235,7 @@ export function Chat() {
                 className={msg.role === "user" ? "flex justify-end" : "flex flex-col gap-2"}
               >
                 {msg.role === "user" ? (
-                  <div className="max-w-[90%] sm:max-w-[68%] bg-muted border border-border px-4 py-2.5 rounded-2xl rounded-tr-sm text-sm leading-relaxed">
+                  <div className="askbase-user-message max-w-[90%] sm:max-w-[68%] bg-muted border border-border px-4 py-2.5 rounded-2xl rounded-tr-sm text-sm leading-relaxed">
                     {msg.content}
                   </div>
                 ) : (
@@ -302,7 +299,7 @@ export function Chat() {
         )}
       </div>
 
-      <div className="border-t px-5 py-4 bg-card shrink-0">
+      <div className="askbase-composer border-t px-5 py-4 bg-card shrink-0">
         <div className="flex items-end gap-2.5 max-w-3xl mx-auto">
           <textarea
             ref={textareaRef}
@@ -355,6 +352,7 @@ export function Chat() {
             </button>
           )}
         </div>
+        <p className="askbase-composer-hint">Enter to ask <span>·</span> Shift + Enter for a new line</p>
       </div>
     </div>
   );

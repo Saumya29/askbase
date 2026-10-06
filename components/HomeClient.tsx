@@ -1,9 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import Link from "next/link";
 import {
-  ArrowLeft,
   Upload as UploadIcon,
   Globe,
   ArrowRight,
@@ -13,8 +11,8 @@ import {
   AlertCircle,
   X,
 } from "lucide-react";
-import { DocumentsPanel, type PendingDocument } from "@/components/DocumentsPanel";
-import { Chat } from "@/components/Chat";
+import type { PendingDocument } from "@/components/DocumentsPanel";
+import { WorkspaceShell } from "@/components/WorkspaceShell";
 import { deviceHeaders } from "@/lib/api";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -311,7 +309,7 @@ export function HomeClient() {
             setCrawlResult({ pages: event.totalPages, chunks: event.totalChunks });
             setCrawlUrl("");
             setRefreshKey((k) => k + 1);
-            addToast("success", `${event.totalPages} pages, ${event.totalChunks} chunks indexed`);
+            addToast("success", `${event.totalPages} pages from this website are ready to search`);
             setTimeout(() => {
               clearPendingDocument(pendingId);
               setShowUrlModal(false);
@@ -361,67 +359,17 @@ export function HomeClient() {
 
   return (
     <div className="app-shell flex flex-col bg-background">
-      {/* Top bar */}
-      <header className="flex items-center h-14 border-b bg-card px-3 sm:px-5 shrink-0">
-        <Link
-          href="/"
-          className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors mr-3"
-          aria-label="Back to home"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Link>
-        <span className="font-display text-base font-semibold tracking-tight">AskBase</span>
-
-        <div className="flex-1 min-w-2" />
-        <button onClick={() => setDocumentsOpen(open => !open)} aria-expanded={documentsOpen} aria-controls="document-library"
-          className="md:hidden text-xs px-2 py-2 rounded-lg hover:bg-muted">{documentsOpen ? "Close" : "Documents"}</button>
-
-        <div className="flex items-center gap-2">
-          <button
-            aria-label="Import URL"
-            onClick={() => { resetCrawl(); setShowUrlModal(true); }}
-            disabled={crawlLoading}
-            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40"
-          >
-            <Globe className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Import URL</span><span className="sm:hidden">Website</span>
-          </button>
-          <button
-            aria-label="Upload PDF"
-            onClick={() => { resetUpload(); setShowUploadModal(true); }}
-            disabled={uploadLoading}
-            className="flex items-center gap-1.5 text-xs font-medium bg-foreground text-primary-foreground px-3 py-1.5 rounded-lg hover:opacity-80 transition-opacity disabled:opacity-40"
-          >
-            <UploadIcon className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Upload PDF</span><span className="sm:hidden">PDF</span>
-          </button>
-        </div>
-      </header>
-
-      <p className="border-b bg-muted px-5 py-2 text-xs text-muted-foreground">
-        Shared demo: uploaded documents are visible to other visitors. Use public files only.
-      </p>
-
-      {/* Main area */}
-      <div className="flex flex-col md:flex-row flex-1 min-h-0 overflow-hidden">
-        <aside id="document-library" className={`${documentsOpen ? "flex" : "hidden"} md:flex w-60 max-md:w-full max-md:max-h-[35vh] md:border-r border-b md:border-b-0 flex-col overflow-hidden shrink-0 bg-surface`}>
-          <div className="flex-1 overflow-y-auto">
-            <DocumentsPanel refreshKey={refreshKey} pendingDocuments={pendingDocuments} />
-          </div>
-        </aside>
-
-        <main className="flex-1 min-w-0 min-h-0 flex flex-col overflow-hidden bg-background">
-          <div className="border-b px-5 py-3 text-xs text-muted-foreground leading-relaxed">
-            <p className="font-medium text-foreground">Ask your documents. Check the sources.</p>
-            <p>Use the sample library, or add a public PDF or website above.</p>
-            <details className="mt-1">
-              <summary className="cursor-pointer hover:text-foreground">About the sample library</summary>
-              <p className="mt-1">Harbour AI is fictional. Its files let you try summaries, calculations and questions with known answers. Questions outside the documents may not have an answer.</p>
-            </details>
-          </div>
-          <Chat />
-        </main>
-      </div>
+      <WorkspaceShell
+        documentsOpen={documentsOpen}
+        onToggleDocuments={() => setDocumentsOpen((open) => !open)}
+        onCloseDocuments={() => setDocumentsOpen(false)}
+        refreshKey={refreshKey}
+        pendingDocuments={pendingDocuments}
+        onUpload={() => { resetUpload(); setShowUploadModal(true); }}
+        onImport={() => { resetCrawl(); setShowUrlModal(true); }}
+        uploadDisabled={uploadLoading}
+        importDisabled={crawlLoading}
+      />
 
       {/* ── Upload Modal ────────────────────────────────────────────────── */}
       <Modal
@@ -434,9 +382,9 @@ export function HomeClient() {
           <div className="space-y-4">
             <div>
               <h3 className="font-display text-lg font-semibold">Upload PDF</h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                Upload a PDF file to index. It will be chunked, embedded, and made searchable.
-              </p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Add a PDF to the shared demo library. AskBase will make its text searchable.
+                </p>
             </div>
 
             <button
@@ -474,7 +422,7 @@ export function HomeClient() {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{uploadFileName}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  {uploadPhase === "uploading" ? "Uploading file..." : "Chunking & embedding..."}
+                  {uploadPhase === "uploading" ? "Uploading file..." : "Making the text searchable..."}
                 </p>
               </div>
             </div>
@@ -546,9 +494,9 @@ export function HomeClient() {
           <div className="space-y-4">
             <div>
               <h3 className="font-display text-lg font-semibold">Import URL</h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                Paste a URL to crawl. All linked pages will be extracted, chunked, and indexed.
-              </p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Add a public website. AskBase can collect up to 25 reachable pages.
+                </p>
             </div>
 
             <div className="flex items-center gap-2">
@@ -572,7 +520,7 @@ export function HomeClient() {
             </div>
 
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Up to 25 pages will be crawled per URL. Only publicly accessible pages are supported.
+              Up to 25 publicly accessible pages can be indexed from each website.
             </p>
           </div>
         )}
@@ -637,7 +585,7 @@ export function HomeClient() {
             <div className="text-center">
               <p className="text-sm font-semibold">Crawl complete</p>
               <p className="text-xs text-muted-foreground mt-1">
-                {crawlResult.pages} pages, {crawlResult.chunks} chunks indexed
+                {crawlResult.pages} pages indexed. You can ask questions now.
               </p>
             </div>
           </div>

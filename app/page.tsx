@@ -1,27 +1,26 @@
-import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, FileText, Globe, MessageSquare, Github } from "lucide-react";
+import { ArrowRight, FileText, Globe, MessageSquare, Github, Sparkles, PanelLeft, Upload, ArrowUp } from "lucide-react";
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
 const features = [
   {
     icon: FileText,
-    title: "PDF Upload & Indexing",
+    title: "Add PDF files",
     description:
-      "Drop in any PDF and AskBase chunks, embeds, and stores it in Supabase pgvector, ready to query in seconds.",
+      "Upload a PDF and AskBase makes its text searchable, so you can ask questions about what it says.",
   },
   {
     icon: Globe,
-    title: "URL Crawling",
+    title: "Import a website",
     description:
-      "Paste a URL and we crawl the whole site, indexing every page so you can ask questions across an entire knowledge base.",
+      "Add a public URL. AskBase can index up to 25 reachable pages from that site.",
   },
   {
     icon: MessageSquare,
-    title: "Streaming Chat with Citations",
+    title: "Answers with sources",
     description:
-      "Get answers that stream in real time, grounded in your documents with source citations you can expand and inspect.",
+      "Ask in plain language, then open a citation to check the passage behind an answer.",
   },
 ];
 
@@ -30,27 +29,26 @@ const steps = [
     number: "01",
     title: "Add your sources",
     description:
-      "Upload PDFs or import any public URL. AskBase crawls, chunks, and embeds your content automatically.",
+      "Upload a PDF or import a public website with up to 25 reachable pages.",
   },
   {
     number: "02",
     title: "Ask your question",
     description:
-      "Type a question in plain language. Semantic search finds the most relevant passages across all your documents.",
+      "Ask a question in your own words. AskBase searches your indexed sources for relevant passages.",
   },
   {
     number: "03",
     title: "Get a grounded answer",
     description:
-      "The AI synthesises an answer from your actual content and shows you exactly which sources it used.",
+      "Read the answer and open its citations to see the supporting text.",
   },
 ];
 
 const techStack = [
-  "Next.js 15",
+  "Next.js 14",
   "Supabase pgvector",
-  "OpenAI Embeddings",
-  "Streaming API",
+  "OpenAI",
   "TypeScript",
 ];
 
@@ -60,7 +58,10 @@ function Navbar() {
   return (
     <nav className="sticky top-0 z-30 bg-background/90 backdrop-blur-sm border-b">
       <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
-        <span className="font-display text-lg font-semibold tracking-tight">AskBase</span>
+        <Link href="/" className="flex items-center gap-2 font-display text-lg font-semibold tracking-tight">
+          <span className="grid h-8 w-8 place-items-center rounded-[10px] bg-primary text-primary-foreground"><MessageSquare className="h-4 w-4" /></span>
+          AskBase
+        </Link>
         <div className="flex items-center gap-4">
           <a
             href="https://github.com/Saumya29/askbase"
@@ -87,26 +88,25 @@ function Navbar() {
 
 function Hero() {
   return (
-    <section className="max-w-5xl mx-auto px-6 pt-24 pb-16 text-center">
+    <section className="max-w-5xl mx-auto px-6 pt-20 pb-14 text-center">
       <div className="inline-flex items-center gap-2 text-xs text-muted-foreground border border-border rounded-full px-3 py-1 mb-8 bg-card">
         <span className="w-1.5 h-1.5 rounded-full bg-foreground/40 inline-block" />
-        Powered by Supabase pgvector &amp; OpenAI
+        DOCUMENT Q&amp;A WITH CHECKABLE SOURCES
       </div>
       <h1 className="font-display text-5xl sm:text-6xl font-semibold tracking-tight text-balance leading-tight mb-6">
-        Chat with your
-        <br />
-        documents
+        Answers from your documents.
+        <br className="hidden sm:block" />
+        Sources you can check.
       </h1>
       <p className="text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed text-pretty mb-10">
-        Upload PDFs or import any URL. Ask questions in plain language and get
-        answers grounded in your actual content, with sources.
+        Add PDFs or a public website. Ask in plain language, then open citations to see where each answer came from.
       </p>
       <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
         <Link
           href="/app"
           className="flex items-center gap-2 bg-foreground text-primary-foreground px-6 py-3 rounded-xl text-sm font-medium hover:opacity-80 transition-opacity"
         >
-          Start for free
+          Open the demo
           <ArrowRight className="h-4 w-4" />
         </Link>
         <a
@@ -119,6 +119,7 @@ function Hero() {
           View on GitHub
         </a>
       </div>
+      <p className="mt-5 text-xs text-muted-foreground">Shared demo. Please use public or sample documents only.</p>
     </section>
   );
 }
@@ -134,19 +135,27 @@ function DemoShowcase() {
           <span className="w-3 h-3 rounded-full bg-border" />
           <div className="flex-1 mx-4">
             <div className="bg-background border border-border rounded-md px-3 py-0.5 text-xs text-muted-foreground text-center max-w-xs mx-auto">
-              askbase.saumyatiwari.com
+              ask.saumyat.com
             </div>
           </div>
         </div>
-        <Image
-          src="/demo.gif"
-          alt="AskBase product demo showing document upload and AI-powered chat"
-          width={1200}
-          height={720}
-          className="w-full h-auto block"
-          unoptimized
-          priority
-        />
+        <div className="bg-[#f3f6f2] p-4 sm:p-8" aria-label="Preview of the AskBase document chat">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#e3e9e2] bg-white px-4 py-3 shadow-sm">
+            <div className="flex items-center gap-2 font-semibold text-[#24312b]"><span className="grid h-8 w-8 place-items-center rounded-lg bg-[#286b55] text-white"><MessageSquare className="h-4 w-4" /></span>AskBase</div>
+            <div className="flex items-center gap-2 text-xs text-[#58665e]"><span className="flex items-center gap-1.5 rounded-lg border px-3 py-2"><PanelLeft className="h-3.5 w-3.5" />Documents</span><span className="hidden sm:flex items-center gap-1.5 rounded-lg border px-3 py-2"><Globe className="h-3.5 w-3.5" />Import website</span><span className="flex items-center gap-1.5 rounded-lg bg-[#286b55] px-3 py-2 text-white"><Upload className="h-3.5 w-3.5" />Upload PDF</span></div>
+          </div>
+          <div className="mt-2 flex items-center justify-center gap-2 rounded-lg border border-[#dfe9df] bg-[#edf4ed] py-2 text-[11px] text-[#58665e]"><span className="h-1.5 w-1.5 rounded-full bg-[#4c8c69]" />Shared demo. Use public documents only.</div>
+          <div className="mx-auto mt-5 flex min-h-[360px] max-w-4xl flex-col rounded-2xl border border-[#e6eae5] bg-white shadow-[0_12px_40px_rgba(37,59,45,0.08)] sm:min-h-[430px]">
+            <div className="flex flex-1 flex-col items-center justify-center px-5 py-12 text-center">
+              <span className="mb-6 grid h-12 w-12 place-items-center rounded-2xl border border-[#e3e9e2] bg-[#f4f7f3] text-[#286b55]"><Sparkles className="h-5 w-5" /></span>
+              <span className="text-[10px] font-semibold tracking-[0.18em] text-[#778078]">DOCUMENT ASSISTANT</span>
+              <h3 className="mt-3 font-display text-2xl font-semibold tracking-tight text-[#202723] sm:text-3xl">What’s in your documents?</h3>
+              <p className="mt-2 max-w-md text-sm leading-6 text-[#788078]">Ask in your own words. Answers include citations so you can check the source.</p>
+              <div className="mt-6 flex flex-wrap justify-center gap-2"><span className="rounded-full border border-[#e4e8e3] px-3 py-2 text-xs text-[#69736b]">Summarize the main points</span><span className="rounded-full border border-[#e4e8e3] px-3 py-2 text-xs text-[#69736b]">Compare these documents</span><span className="rounded-full border border-[#e4e8e3] px-3 py-2 text-xs text-[#69736b]">List decisions and next steps</span></div>
+            </div>
+            <div className="flex items-center gap-2 border-t border-[#edf0ec] p-4 sm:px-8"><div className="flex-1 rounded-xl border border-[#e5e9e4] bg-[#fbfcfa] px-4 py-3 text-sm text-[#9aa19b]">Ask about your documents...</div><span className="grid h-11 w-11 place-items-center rounded-xl bg-[#286b55] text-white"><ArrowUp className="h-4 w-4" /></span></div>
+          </div>
+        </div>
       </div>
     </section>
   );
@@ -161,7 +170,7 @@ function Features() {
             Everything you need
           </h2>
           <p className="text-muted-foreground text-base max-w-md mx-auto leading-relaxed">
-            AskBase handles the entire pipeline, from ingestion to retrieval to generation.
+            Add sources, ask questions and check the answer against the original text.
           </p>
         </div>
         <div className="grid sm:grid-cols-3 gap-6">
@@ -241,7 +250,7 @@ function CTA() {
         Ready to ask your documents?
       </h2>
       <p className="text-muted-foreground text-base max-w-sm mx-auto leading-relaxed mb-8">
-        No account required. Upload a PDF or paste a URL and start chatting immediately.
+        Open the shared demo and try a question against its sample documents.
       </p>
       <Link
         href="/app"
