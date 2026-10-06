@@ -121,6 +121,7 @@ ${sources.map((s, i) => `[${i + 1}] ${s.document_name}\n${passages[i].map((text,
           });
           accepted = candidates.filter((_, index) => review.object.supported.includes(index));
         }
+        writer.write({ type: "data-grounding-trace", data: { draft: result.object.claims, valid: candidates, accepted, sourceCount: sources.length }, transient: true });
         const answer = renderGroundedAnswer(accepted, sources);
         const queryInsert = await supabase.from("queries").insert({ question: lastUserText, response: answer.text, sources: answer.sources, device_id: deviceId || null }).select("id").single();
         writer.write({ type: "start", messageId: crypto.randomUUID(), messageMetadata: { sources: answer.sources, queryId: queryInsert.data?.id } });

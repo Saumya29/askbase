@@ -126,6 +126,7 @@ export function Chat() {
     error,
   } = useChat<ChatMessage>({
     messages: [],
+    onData: part => { if (part.type === "data-grounding-trace") console.debug("[grounding-trace]", JSON.stringify(part.data)); },
     transport: new DefaultChatTransport({
       api: "/api/chat",
       headers: deviceHeaders(),
