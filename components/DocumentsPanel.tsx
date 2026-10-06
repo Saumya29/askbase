@@ -172,7 +172,7 @@ function DocumentItem({
       )}
       <div className="flex-1 min-w-0">
         <div className="flex items-start gap-2">
-          <p className="text-xs font-medium truncate leading-snug flex-1">{doc.name}</p>
+          <p className="text-xs font-medium truncate leading-snug flex-1">{doc.name.replace(/_/g, " ").replace(/\.pdf$/i, "")}</p>
           <button
             onClick={() => onDelete(doc)}
             disabled={deleting}
@@ -184,9 +184,8 @@ function DocumentItem({
           </button>
         </div>
         <p className="text-xs text-muted-foreground leading-snug mt-0.5">
-          {doc.chunk_count} chunks
-          {doc.source_type !== "url" && ` · ${(doc.size / 1024).toFixed(1)} KB`}
-          {` · ${formatRelativeTime(doc.created_at)}`}
+          {doc.source_type !== "url" ? `${(doc.size / 1024).toFixed(1)} KB · ` : "Website · "}
+          {formatRelativeTime(doc.created_at)}
         </p>
       </div>
     </div>
@@ -261,10 +260,10 @@ export function DocumentsPanel({
   const visibleDocuments = useMemo(() => dedupeDocuments(documents), [documents]);
 
   const filteredDocuments = useMemo(() => {
-    const query = search.trim().toLowerCase();
+    const query = search.trim().replace(/_/g, " ").toLowerCase();
     if (!query) return visibleDocuments;
     return visibleDocuments.filter((doc) => {
-      const haystack = [doc.name, doc.source_url || "", doc.source_type].join(" ").toLowerCase();
+      const haystack = [doc.name, doc.source_url || "", doc.source_type].join(" ").replace(/_/g, " ").toLowerCase();
       return haystack.includes(query);
     });
   }, [search, visibleDocuments]);
@@ -334,7 +333,7 @@ export function DocumentsPanel({
                 >
                   <Loader2 className="h-3.5 w-3.5 shrink-0 text-muted-foreground mt-0.5 animate-spin" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium truncate leading-snug">{doc.name}</p>
+                    <p className="text-xs font-medium truncate leading-snug">{doc.name.replace(/_/g, " ").replace(/\.pdf$/i, "")}</p>
                     <p className="text-xs text-muted-foreground leading-snug mt-0.5">{doc.detail}</p>
                   </div>
                 </div>
