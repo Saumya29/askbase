@@ -130,6 +130,7 @@ function ProgressBar({
 // ─── Main ────────────────────────────────────────────────────────────────────
 
 export function HomeClient() {
+  const [documentsOpen, setDocumentsOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [pendingDocuments, setPendingDocuments] = useState<PendingDocument[]>([]);
@@ -361,7 +362,7 @@ export function HomeClient() {
   return (
     <div className="app-shell flex flex-col bg-background">
       {/* Top bar */}
-      <header className="flex items-center h-14 border-b bg-card px-5 shrink-0">
+      <header className="flex items-center h-14 border-b bg-card px-3 sm:px-5 shrink-0">
         <Link
           href="/"
           className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors mr-3"
@@ -371,24 +372,28 @@ export function HomeClient() {
         </Link>
         <span className="font-display text-base font-semibold tracking-tight">AskBase</span>
 
-        <div className="flex-1 min-w-4" />
+        <div className="flex-1 min-w-2" />
+        <button onClick={() => setDocumentsOpen(open => !open)} aria-expanded={documentsOpen} aria-controls="document-library"
+          className="md:hidden text-xs px-2 py-2 rounded-lg hover:bg-muted">{documentsOpen ? "Close" : "Documents"}</button>
 
         <div className="flex items-center gap-2">
           <button
+            aria-label="Import URL"
             onClick={() => { resetCrawl(); setShowUrlModal(true); }}
             disabled={crawlLoading}
             className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-muted px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40"
           >
             <Globe className="h-3.5 w-3.5" />
-            Import URL
+            <span className="hidden sm:inline">Import URL</span><span className="sm:hidden">Website</span>
           </button>
           <button
+            aria-label="Upload PDF"
             onClick={() => { resetUpload(); setShowUploadModal(true); }}
             disabled={uploadLoading}
             className="flex items-center gap-1.5 text-xs font-medium bg-foreground text-primary-foreground px-3 py-1.5 rounded-lg hover:opacity-80 transition-opacity disabled:opacity-40"
           >
             <UploadIcon className="h-3.5 w-3.5" />
-            Upload PDF
+            <span className="hidden sm:inline">Upload PDF</span><span className="sm:hidden">PDF</span>
           </button>
         </div>
       </header>
@@ -398,18 +403,21 @@ export function HomeClient() {
       </p>
 
       {/* Main area */}
-      <div className="flex flex-1 overflow-hidden">
-        <aside className="w-72 border-r flex flex-col overflow-hidden shrink-0 bg-surface">
+      <div className="flex flex-col md:flex-row flex-1 min-h-0 overflow-hidden">
+        <aside id="document-library" className={`${documentsOpen ? "flex" : "hidden"} md:flex w-60 max-md:w-full max-md:max-h-[35vh] md:border-r border-b md:border-b-0 flex-col overflow-hidden shrink-0 bg-surface`}>
           <div className="flex-1 overflow-y-auto">
             <DocumentsPanel refreshKey={refreshKey} pendingDocuments={pendingDocuments} />
           </div>
         </aside>
 
-        <main className="flex-1 flex flex-col overflow-hidden bg-background">
-          <div className="border-b px-6 py-3 text-xs text-muted-foreground leading-relaxed">
-            <p className="font-medium text-foreground">Answers from documents, with sources</p>
-            <p>Ask about a document listed on the left, or upload a public PDF. Questions outside those documents may not have an answer.</p>
-            <p className="mt-1">The Harbour AI files are fictional samples for testing document Q&amp;A, not a real company or product.</p>
+        <main className="flex-1 min-w-0 min-h-0 flex flex-col overflow-hidden bg-background">
+          <div className="border-b px-5 py-3 text-xs text-muted-foreground leading-relaxed">
+            <p className="font-medium text-foreground">Ask your documents. Check the sources.</p>
+            <p>Use the sample library, or add a public PDF or website above.</p>
+            <details className="mt-1">
+              <summary className="cursor-pointer hover:text-foreground">About the sample library</summary>
+              <p className="mt-1">Harbour AI is fictional. Its files let you try summaries, calculations and questions with known answers. Questions outside the documents may not have an answer.</p>
+            </details>
           </div>
           <Chat />
         </main>

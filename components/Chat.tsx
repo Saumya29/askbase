@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, UIMessage } from "ai";
-import { ArrowUp, RotateCcw, Square, ThumbsDown, ThumbsUp } from "lucide-react";
+import { ArrowUp, RotateCcw, Square, Loader2, ThumbsDown, ThumbsUp } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { deviceHeaders } from "@/lib/api";
 import { SourceCitations } from "@/components/SourceCitations";
@@ -86,9 +86,9 @@ function loadMessages(): ChatMessage[] {
 }
 
 const SUGGESTED_PROMPTS = [
-  "Summarize these documents in plain English",
-  "What decisions and next steps do these documents describe?",
-  "What information is missing from these documents?",
+  "Summarize the documents",
+  "Find decisions and next steps",
+  "What is still undecided?",
 ];
 
 function getMessageText(message: ChatMessage) {
@@ -105,7 +105,7 @@ function getChatErrorMessage(error: Error) {
   } catch {
     // Streaming errors already contain a readable message.
   }
-  return error.message;
+  return error.message === "Failed to fetch" ? "Connection interrupted. Retry your question." : error.message;
 }
 
 export function Chat() {
@@ -188,6 +188,8 @@ export function Chat() {
   };
 
   const isLoading = status === "submitted" || status === "streaming";
+  const latestMessage = messages.at(-1);
+  const lastUserMessage = [...messages].reverse().find(msg => msg.role === "user");
   const lastAssistantMessage = [...messages].reverse().find((msg) => msg.role === "assistant");
 
   const normalizedMessages = useMemo(
@@ -201,7 +203,7 @@ export function Chat() {
   );
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full min-h-0">
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
         {normalizedMessages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-4 text-center px-8">
@@ -219,8 +221,7 @@ export function Chat() {
                 <button
                   key={prompt}
                   onClick={() => {
-                    setInput(prompt);
-                    textareaRef.current?.focus();
+                    void sendMessage({ text: prompt });
                   }}
                   className="text-xs px-3 py-1.5 rounded-full border border-border bg-card text-muted-foreground hover:text-foreground hover:border-foreground/30 hover:bg-accent transition-all"
                 >
@@ -237,11 +238,11 @@ export function Chat() {
                 className={msg.role === "user" ? "flex justify-end" : "flex flex-col gap-2"}
               >
                 {msg.role === "user" ? (
-                  <div className="max-w-[68%] bg-muted border border-border px-4 py-2.5 rounded-2xl rounded-tr-sm text-sm leading-relaxed">
+                  <div className="max-w-[90%] sm:max-w-[68%] bg-muted border border-border px-4 py-2.5 rounded-2xl rounded-tr-sm text-sm leading-relaxed">
                     {msg.content}
                   </div>
                 ) : (
-                  <div className="max-w-[82%]">
+                  <div className="max-w-full sm:max-w-[90%]">
                     <div className="text-sm leading-relaxed prose prose-sm max-w-none prose-p:my-1.5 prose-li:my-0 prose-ul:my-1.5 prose-ol:my-1.5 prose-headings:my-2 prose-headings:font-semibold prose-headings:font-display">
                       <ReactMarkdown>{msg.content || (isLoading ? "..." : "")}</ReactMarkdown>
                     </div>
@@ -287,8 +288,15 @@ export function Chat() {
               </div>
             ))}
 
+            {isLoading && <div role="status" aria-live="polite" className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" /> Finding a supported answer…
+            </div>}
             {error && (
-              <div role="alert" className="text-xs text-destructive">{getChatErrorMessage(error)}</div>
+              <div role="alert" className="rounded-xl border border-border p-3 text-xs flex items-center justify-between gap-3">
+                <span>{getChatErrorMessage(error)}</span>
+                {lastUserMessage && <button disabled={isLoading} onClick={() => void regenerate({ messageId: lastUserMessage.id })}
+                  className="shrink-0 font-medium underline underline-offset-4 disabled:opacity-40">Retry question</button>}
+              </div>
             )}
           </div>
         )}
@@ -301,8 +309,9 @@ export function Chat() {
             value={input}
             onChange={handleTextareaChange}
             onKeyDown={handleKeyDown}
-            placeholder="Ask a question... (Enter to send, Shift+Enter for newline)"
+            placeholder="Ask about these documents…"
             rows={1}
+            aria-label="Ask about your documents"
             className="flex-1 resize-none overflow-hidden bg-background border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring/20 placeholder:text-muted-foreground leading-relaxed transition-shadow"
             style={{ minHeight: "44px", maxHeight: "120px" }}
           />
@@ -316,7 +325,7 @@ export function Chat() {
             </button>
           )}
 
-          {lastAssistantMessage && !isLoading && (
+          {lastAssistantMessage && latestMessage?.role === "assistant" && !error && !isLoading && (
             <button
               onClick={() => void regenerate({ messageId: lastAssistantMessage.id })}
               className="shrink-0 h-[44px] px-3 flex items-center justify-center rounded-xl border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"

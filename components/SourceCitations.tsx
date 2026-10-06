@@ -8,15 +8,16 @@ export function SourceCitations({ sources, expandedSource, onToggle }: {
 }) {
   return (
     <div className="mt-3 space-y-1.5">
-      <div className="flex flex-wrap gap-x-3 gap-y-1.5">
+      <p className="text-[11px] text-muted-foreground">Supporting passages · tap to read</p>
+      <div className="flex flex-wrap gap-x-2 gap-y-1.5">
         {sources.map((source, index) => (
           <span key={`${source.id}-${index}`} className="inline-flex items-center gap-1.5">
             <button
               onClick={() => onToggle(source.id)}
               aria-expanded={expandedSource === source.id}
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors border border-border rounded-full px-2.5 py-1 hover:bg-muted"
             >
-              [{index + 1}] {source.document_name || "Document"}
+              [{index + 1}] {source.document_name?.replace(/_/g, " ").replace(/\.pdf$/i, "") || "Document"}
             </button>
             {source.source_url && (
               <a href={source.source_url} target="_blank" rel="noopener noreferrer"
