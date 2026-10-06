@@ -247,7 +247,7 @@ export function Chat() {
                       <ReactMarkdown>{msg.content || (isLoading ? "..." : "")}</ReactMarkdown>
                     </div>
 
-                    {msg.metadata?.sources && msg.metadata.sources.length > 0 && (
+                    {msg.metadata?.sources && msg.metadata.sources.length > 0 && /\[\d+\]/.test(msg.content) && (
                       <SourceCitations
                         sources={msg.metadata.sources}
                         expandedSource={expandedSource}
