@@ -250,8 +250,8 @@ export function Chat() {
                     {msg.metadata?.sources && msg.metadata.sources.length > 0 && /\[\d+\]/.test(msg.content) && (
                       <SourceCitations
                         sources={msg.metadata.sources}
-                        expandedSource={expandedSource}
-                        onToggle={(id) => setExpandedSource(expandedSource === id ? null : id)}
+                        expandedSource={expandedSource?.startsWith(`${msg.id}:`) ? expandedSource.slice(msg.id.length + 1) : null}
+                        onToggle={(id) => { const key = `${msg.id}:${id}`; setExpandedSource(expandedSource === key ? null : key); }}
                       />
                     )}
 
