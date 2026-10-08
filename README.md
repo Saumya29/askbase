@@ -26,10 +26,11 @@ flowchart TD
     C --> D[Supabase PostgreSQL + pgvector]
     E[Question] --> F[Embed the question]
     F --> D
-    D --> G[Retrieve four source passages]
-    G --> H[GPT-4o-mini via Vercel AI SDK]
-    H --> I[Stream answer and show citations]
-    I --> J[Answer feedback]
+    D --> G[Retrieve up to six source passages]
+    G --> H[Generate claims with passage references]
+    H --> I[Check quoted passages and review claim support]
+    I --> L[Stream accepted claims with source links]
+    L --> J[Answer feedback]
     J --> K[Adjust source chunk quality scores]
     K --> D
 ```
@@ -113,7 +114,7 @@ Next improvements:
 
 - Authentication, protected admin routes, and enforced document access throughout the API and retrieval path.
 - A retrieval evaluation set with known source passages, followed by hybrid search and reranking experiments.
-- Grounding checks for citations and query rewriting for follow-up questions. Retrieval currently embeds only the latest user message.
+- Evaluate whether the existing quote and model-review checks actually reject unsupported answers, and add query rewriting for follow-up questions. Retrieval currently embeds only the latest user message.
 - Better handling of large documents, failed imports, and repeated feedback.
 
 Reliability checks added: bounded overlapping chunks, stable citation numbers with full passage previews, explicit dependency failures, upload size/text validation, and import storage errors. Run `npm test` for the regression suite. These checks use mocked services; they do not measure live model accuracy.
