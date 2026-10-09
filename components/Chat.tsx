@@ -86,9 +86,9 @@ function loadMessages(): ChatMessage[] {
 }
 
 const SUGGESTED_PROMPTS = [
-  "Summarize the main points",
-  "Compare these documents",
-  "List decisions and next steps",
+  "What did the Harbour AI pilot achieve?",
+  "Which targets did the pilot miss?",
+  "What needs to happen before a public launch?",
 ];
 
 function getMessageText(message: ChatMessage) {
@@ -209,9 +209,9 @@ export function Chat() {
           <div className="askbase-empty-state">
             <div className="askbase-empty-icon"><Sparkles size={19} /></div>
             <div className="askbase-empty-copy">
-              <span>DOCUMENT ASSISTANT</span>
-              <h1>What’s in your documents?</h1>
-              <p>Ask in your own words. Answers include citations so you can check the source.</p>
+              <span>TRY THE SAMPLE DOCUMENTS</span>
+              <h1>Ask about Harbour AI</h1>
+              <p>Explore a fictional support copilot through its product brief, safety policy and pilot results. Open a citation to check each answer.</p>
             </div>
             <div className="askbase-prompt-list">
               {SUGGESTED_PROMPTS.map((prompt) => (
